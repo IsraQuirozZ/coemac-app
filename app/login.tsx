@@ -1,6 +1,6 @@
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import React, { useState } from "react";
 import {
   KeyboardAvoidingView,
   Platform,
@@ -9,31 +9,31 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-} from 'react-native';
-import { PLACEHOLDER, PRIMARY, styles } from '../styles/login.styles';
+} from "react-native";
+import { PLACEHOLDER, PRIMARY, styles } from "../styles/login.styles";
 
 export default function LoginScreen() {
   const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [emailFocused, setEmailFocused] = useState(false);
   const [passwordFocused, setPasswordFocused] = useState(false);
 
   const handleLogin = () => {
     // TODO: implement authentication logic
-    console.log('Login with:', email, password);
+    console.log("Login with:", email, password);
   };
 
   const handleForgotPassword = () => {
     // TODO: navigate to forgot password screen
-    console.log('Forgot password');
+    console.log("Forgot password");
   };
 
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -47,9 +47,16 @@ export default function LoginScreen() {
         </View>
 
         {/* Campo Email — card independiente */}
-        <View style={[styles.fieldCard, emailFocused && styles.fieldCardActive]}>
+        <View
+          style={[styles.fieldCard, emailFocused && styles.fieldCardActive]}
+        >
           <View style={styles.labelRow}>
-            <Ionicons name="mail-outline" size={20} color={PRIMARY} style={styles.labelIcon} />
+            <Ionicons
+              name="mail-outline"
+              size={20}
+              color={PRIMARY}
+              style={styles.labelIcon}
+            />
             <Text style={styles.label}>Email</Text>
           </View>
           <TextInput
@@ -67,9 +74,16 @@ export default function LoginScreen() {
         </View>
 
         {/* Campo Password — card independiente */}
-        <View style={[styles.fieldCard, passwordFocused && styles.fieldCardActive]}>
+        <View
+          style={[styles.fieldCard, passwordFocused && styles.fieldCardActive]}
+        >
           <View style={styles.labelRow}>
-            <Ionicons name="lock-closed-outline" size={20} color={PRIMARY} style={styles.labelIcon} />
+            <Ionicons
+              name="lock-closed-outline"
+              size={20}
+              color={PRIMARY}
+              style={styles.labelIcon}
+            />
             <Text style={styles.label}>Password</Text>
           </View>
           <View style={styles.inputPasswordWrapper}>
@@ -89,7 +103,7 @@ export default function LoginScreen() {
               onPress={() => setShowPassword(!showPassword)}
             >
               <Ionicons
-                name={showPassword ? 'eye-outline' : 'eye-off-outline'}
+                name={showPassword ? "eye-outline" : "eye-off-outline"}
                 size={20}
                 color={PLACEHOLDER}
               />
@@ -98,23 +112,29 @@ export default function LoginScreen() {
         </View>
 
         {/* Forgot password */}
-        <TouchableOpacity onPress={handleForgotPassword} style={styles.forgotContainer}>
+        <TouchableOpacity
+          onPress={handleForgotPassword}
+          style={styles.forgotContainer}
+        >
           <Text style={styles.forgotText}>¿Olvidaste tu contraseña?</Text>
         </TouchableOpacity>
 
         {/* Botón Login */}
-        <TouchableOpacity style={styles.button} onPress={handleLogin} activeOpacity={0.85}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={handleLogin}
+          activeOpacity={0.85}
+        >
           <Text style={styles.buttonText}>Login</Text>
         </TouchableOpacity>
 
         {/* Link a Register */}
         <View style={styles.registerRow}>
           <Text style={styles.registerLabel}>¿Nuevo por aquí?</Text>
-          <TouchableOpacity onPress={() => router.push('/register')}>
+          <TouchableOpacity onPress={() => router.push("/register")}>
             <Text style={styles.registerLink}>Regístrate</Text>
           </TouchableOpacity>
         </View>
-
       </ScrollView>
     </KeyboardAvoidingView>
   );
