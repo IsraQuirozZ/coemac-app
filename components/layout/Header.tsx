@@ -1,16 +1,10 @@
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import {
-  Dimensions,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Path, Svg } from "react-native-svg";
 import { colors } from "../../theme/colors";
 
-const { width } = Dimensions.get("window");
+import { useWindowDimensions } from "react-native";
 
 type HeaderProps = {
   title: string;
@@ -23,12 +17,14 @@ const Header: React.FC<HeaderProps> = ({
   onNotificationPress,
   initials = "IQ",
 }) => {
+  const { width } = useWindowDimensions();
   return (
     <View style={styles.header__container}>
       <Svg
         height={120}
         width="100%"
         viewBox={`0 0 ${width} 120`}
+        preserveAspectRatio="none"
         style={styles.svg}
       >
         <Path
@@ -61,16 +57,13 @@ const Header: React.FC<HeaderProps> = ({
         <Text style={styles.title}>{title}</Text>
 
         <View style={styles.rightSection}>
-          {/* Notificaciones */}
           <TouchableOpacity
             style={styles.iconContainer}
             onPress={onNotificationPress}
           >
-            <Ionicons name="notifications-outline" size={25} color="#fff" />
+            <Ionicons name="notifications" size={25} color="#fff" />
             <View style={styles.notificationDot} />
           </TouchableOpacity>
-
-          {/* Avatar */}
           <View style={styles.avatar}>
             <Text style={styles.avatarText}>{initials}</Text>
           </View>
@@ -81,6 +74,7 @@ const Header: React.FC<HeaderProps> = ({
 };
 
 export default Header;
+
 const styles = StyleSheet.create({
   header__container: {
     height: 120,
