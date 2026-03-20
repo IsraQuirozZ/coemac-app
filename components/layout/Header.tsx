@@ -21,7 +21,7 @@ const Header: React.FC<HeaderProps> = ({
   return (
     <View style={styles.header__container}>
       <Svg
-        height={120}
+        height={130}
         width="100%"
         viewBox={`0 0 ${width} 120`}
         preserveAspectRatio="none"
@@ -77,17 +77,22 @@ export default Header;
 
 const styles = StyleSheet.create({
   header__container: {
-    height: 120,
-    paddingHorizontal: 24,
-    paddingTop: 45,
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    // height: 130,
+    paddingTop: 55,
     paddingBottom: 25,
-    backgroundColor: colors.background,
+    zIndex: 100,
   },
 
   svg: {
     position: "absolute",
     top: 0,
     left: 0,
+    width: "100%",
+    height: 120,
   },
 
   content: {
@@ -95,6 +100,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
+    paddingHorizontal: 24,
   },
 
   title: {
