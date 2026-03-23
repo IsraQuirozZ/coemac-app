@@ -1,20 +1,43 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet } from "react-native";
+import { colors } from "../theme/colors";
 
 export const referenciasStyles = StyleSheet.create({
-  container: {
-    flex: 1,                // Ocupa toda la pantalla
-    backgroundColor: 'white', // Fondo visible
-    paddingTop: 40,         // Espacio adicional para el header
+  referenciasContainer: {
+    backgroundColor: colors.background,
+    paddingHorizontal: 24,
+    paddingTop: 150,
+    paddingBottom: 120,
+    gap: 30,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginTop: 16,
-    color: '#333',
+
+  referenciasText: {
+    gap: 10,
   },
-  subtitle: {
+
+  referenciasTitle: {
+    fontSize: 28,
+    fontWeight: "700",
+    color: colors.primary,
+  },
+
+  referenciasDescription: {
     fontSize: 16,
-    marginTop: 8,
-    color: '#666',
+    color: colors.secondaryText,
+  },
+
+  filterContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  referenceCards: {
+    gap: 20,
+  },
+
+  addButton: {
+    position: "absolute",
+    bottom: 110,
+    right: 24,
+    zIndex: 100,
   },
 });
