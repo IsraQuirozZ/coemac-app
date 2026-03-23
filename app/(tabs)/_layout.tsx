@@ -20,7 +20,7 @@ export default function TabsLayout() {
               iconName = "home-sharp";
               label = "Dashboard";
               break;
-            case "referencias":
+            case "referencias/index":
               iconName = "people-sharp";
               label = "Referencias";
               break;
@@ -64,10 +64,11 @@ export default function TabsLayout() {
       })}
     >
       <Tabs.Screen name="dashboard" />
-      <Tabs.Screen name="referencias" />
+      <Tabs.Screen name="referencias/index" />
       <Tabs.Screen name="reuniones" />
       <Tabs.Screen name="agradecimientos" />
       <Tabs.Screen name="incidencias" />
+      <Tabs.Screen name="referencias/crear" options={{ href: null }} />
     </Tabs>
   );
 }
@@ -82,8 +83,7 @@ const styles = StyleSheet.create({
     right: 0,
     borderTopLeftRadius: 40,
     borderTopRightRadius: 40,
-    borderTopWidth: 1,
-    borderTopColor: colors.border,
+    borderTopWidth: 0,
     shadowColor: "#00000080",
     shadowOffset: { width: 0, height: -2 },
     shadowOpacity: 0.1,
@@ -99,7 +99,6 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
     gap: 4,
-    paddingHorizontal: 2,
   },
 
   label: {
