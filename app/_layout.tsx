@@ -7,10 +7,19 @@ export default function RootLayout() {
 
       <Stack.Screen
         name="(modals)/crearReferencia"
-        options={{
-          presentation: "modal",
-          headerShown: false,
-        }}
+        options={{ presentation: "modal", headerShown: false }}
+      />
+      <Stack.Screen
+        name="(modals)/crearAgradecimiento"
+        options={{ presentation: "modal", headerShown: false }}
+      />
+      <Stack.Screen
+        name="(modals)/envioAgradecimiento"
+        options={{ presentation: "modal", headerShown: false }}
+      />
+      <Stack.Screen
+        name="(modals)/crearReunion"
+        options={{ presentation: "modal", headerShown: false }}
       />
     </Stack>
   );

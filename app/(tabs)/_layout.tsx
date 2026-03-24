@@ -24,11 +24,11 @@ export default function TabsLayout() {
               iconName = "people-sharp";
               label = "Referencias";
               break;
-            case "reuniones":
+            case "reuniones/index":
               iconName = "calendar-clear";
               label = "Reuniones";
               break;
-            case "agradecimientos":
+            case "agradecimientos/index":
               iconName = "heart";
               label = "GNC";
               break;
@@ -65,8 +65,8 @@ export default function TabsLayout() {
     >
       <Tabs.Screen name="dashboard" />
       <Tabs.Screen name="referencias/index" />
-      <Tabs.Screen name="reuniones" />
-      <Tabs.Screen name="agradecimientos" />
+      <Tabs.Screen name="reuniones/index" />
+      <Tabs.Screen name="agradecimientos/index" />
       <Tabs.Screen name="incidencias" />
       <Tabs.Screen name="referencias/crear" options={{ href: null }} />
     </Tabs>
