@@ -1,14 +1,20 @@
 import { StyleSheet } from "react-native";
 import { colors } from "../theme/colors";
 
-export const referenciaCrearStyles = StyleSheet.create({
+export const crearReferenciaStyles = StyleSheet.create({
   referenciasContainer: {
-    // flex: 1,
     backgroundColor: colors.background,
     paddingHorizontal: 24,
-    paddingTop: 30,
+    paddingTop: 10,
     paddingBottom: 60,
     gap: 30,
+  },
+  handlerIndicator: {
+    width: 40,
+    height: 5,
+    backgroundColor: "#ccc",
+    borderRadius: 2.5,
+    alignSelf: "center",
   },
 
   referenciasText: {
@@ -27,6 +33,18 @@ export const referenciaCrearStyles = StyleSheet.create({
   },
   formContainer: {
     gap: 20,
+  },
+  formSelectContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  membersDropdown: {
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: 8,
+    overflow: "hidden",
   },
   textArea: {
     minHeight: 100,

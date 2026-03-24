@@ -90,7 +90,7 @@ export default function Referencias() {
       <Button
         containerStyle={styles.addButton}
         label="Agregar Referencia"
-        variant="addBtn"
+        variant="add"
         onPress={() => router.push("/(modals)/crearReferencia")}
       />
     </View>

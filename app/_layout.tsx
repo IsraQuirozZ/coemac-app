@@ -1,9 +1,13 @@
+import { ToastProvider } from "@/hooks/useToast";
 import { Stack } from "expo-router";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 
 export default function RootLayout() {
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="(tabs)" />
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ToastProvider>
+        <Stack screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="(tabs)" />
 
       <Stack.Screen
         name="(modals)/crearReferencia"
@@ -22,5 +26,7 @@ export default function RootLayout() {
         options={{ presentation: "modal", headerShown: false }}
       />
     </Stack>
-  );
+      </ToastProvider>
+    </GestureHandlerRootView>
+    );
 }
