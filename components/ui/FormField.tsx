@@ -8,6 +8,7 @@ type FormFieldProps = {
   icon: any;
   children: ReactNode;
   date?: boolean;
+  error?: string;
 };
 
 export default function FormField({
@@ -15,6 +16,7 @@ export default function FormField({
   icon,
   children,
   date = false,
+  error,
 }: FormFieldProps) {
   const [isFocused, setIsFocused] = useState(false);
 
@@ -22,8 +24,14 @@ export default function FormField({
 
   if (React.isValidElement(children)) {
     childrenWithProps = React.cloneElement(children, {
-      onFocus: () => setIsFocused(true),
-      onBlur: () => setIsFocused(false),
+      onFocus: (e: any) => {
+        setIsFocused(true);
+        (children as React.ReactElement<any>).props.onFocus?.(e);
+      },
+      onBlur: (e: any) => {
+        setIsFocused(false);
+        (children as React.ReactElement<any>).props.onBlur?.(e);
+      },
     } as any);
   }
 
@@ -37,10 +45,16 @@ export default function FormField({
       {date ? (
         <View>{children}</View>
       ) : (
-        <View style={[styles.inputContainer, isFocused && styles.inputFocused]}>
+        <View
+          style={[
+            styles.inputContainer,
+            error ? styles.inputError : isFocused && styles.inputFocused,
+          ]}
+        >
           {childrenWithProps}
         </View>
       )}
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
     </View>
   );
 }
@@ -77,10 +91,18 @@ const styles = StyleSheet.create({
     borderColor: "#E5E7EB",
     borderRadius: 8,
     paddingHorizontal: 12,
-    paddingVertical: 10,
+    paddingVertical: 12,
   },
   inputFocused: {
     borderColor: colors.light,
   },
   dateInputContainer: {},
+  inputError: {
+    borderColor: colors.error,
+  },
+  errorText: {
+    color: colors.error,
+    fontSize: 12,
+    marginLeft: 2,
+  },
 });
