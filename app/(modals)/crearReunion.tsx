@@ -1,122 +1,245 @@
 import Button from "@/components/ui/Button";
+import { DatePickerSheet } from "@/components/ui/DatePickerSheet";
 import FormField from "@/components/ui/FormField";
+import HandlerIndicator from "@/components/ui/HandlerIndicator";
+import { MemberSelectSheet } from "@/components/ui/MemberSelectSheet";
 import { reunionesStyles as styles } from "@/styles/reuniones.styles";
 import { colors } from "@/theme/colors";
 import { Ionicons } from "@expo/vector-icons";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import { useRouter } from "expo-router";
-import { useState } from "react";
+import BottomSheet from "@gorhom/bottom-sheet";
+import { useNavigation, useRouter } from "expo-router";
+import { useEffect, useRef, useState } from "react";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { useToast } from "../../hooks/useToast";
 
 // TODO: Replace with → prisma.miembro.findMany()
 const memberOptions = [
-  "Ana Martínez", "Carlos López", "Elena García", "Fernando Ruiz",
-  "Isabel Sánchez", "Javier Torres", "Laura Fernández", "Miguel Herrera",
+  "Ana Martínez",
+  "Carlos López",
+  "Elena García",
+  "Fernando Ruiz",
+  "Isabel Sánchez",
+  "Javier Torres",
+  "Laura Fernández",
+  "Miguel Herrera",
 ];
 
 export default function CrearReunion() {
+  // TOAST
+  const { showToast } = useToast();
+
+  // MODALS (SELECT & DATEPICKER)
+  const [date, setDate] = useState(new Date());
+  const dateSheetRef = useRef<BottomSheet>(null);
+  const memberSheetRef = useRef<BottomSheet>(null);
+
+  const [isAnySheetOpen, setIsAnySheetOpen] = useState(false);
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    navigation.setOptions({
+      gestureEnabled: !isAnySheetOpen,
+    });
+  }, [isAnySheetOpen]);
+
   const router = useRouter();
 
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
-  const [showMemberOptions, setShowMemberOptions] = useState(false);
   const [temas, setTemas] = useState("");
-  const [date, setDate] = useState(new Date());
+
+  // Simulación de envío de formulario
+  const [form, setForm] = useState({
+    miembro: null as string | null,
+    fechaReunion: date,
+    temasTratados: "",
+  });
+
+  const [isError, setIsError] = useState(false);
+  const [errors, setErrors] = useState({
+    miembro: "",
+    fechaReunion: "",
+    temasTratados: "",
+  });
+
+  const validateForm = () => {
+    let newErrors: any = {};
+
+    const fechaReunion = form.fechaReunion;
+    const today = new Date();
+    const temasTratados = form.temasTratados.trim();
+
+    const textRegex = /^.{10,}$/;
+
+    // MIEMBRO
+    if (!form.miembro) {
+      newErrors.miembro = "Selecciona un miembro";
+    }
+
+    // FECHA
+    if (!fechaReunion) {
+      newErrors.fechaReunion = "La fecha de la referencia es requerida.";
+    } else if (fechaReunion > today) {
+      newErrors.fechaReunion = "La fecha de la referencia no puede ser futura.";
+    }
+
+    // TEMAS TRATADOS
+    if (temasTratados && !textRegex.test(temasTratados)) {
+      newErrors.temasTratados =
+        "Escribe al menos 10 caracteres para los temas tratados.";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const clearError = (field: keyof typeof errors) => {
+    if (errors[field]) {
+      setErrors((prev) => ({
+        ...prev,
+        [field]: "",
+      }));
+    }
+  };
 
   const handleSubmit = () => {
     // TODO: prisma.reunion.create({ data: { miembro: selectedMember, fecha: date, temas } })
+    const isValid = validateForm();
+
+    if (!isValid) {
+      setIsError(true);
+      return;
+    }
+
+    console.log("Formulario válido", form);
+    showToast("Reunión registrada", "success");
+
     router.back();
   };
 
   return (
-    <KeyboardAwareScrollView
-      contentContainerStyle={styles.formContainer}
-      keyboardShouldPersistTaps="handled"
-      extraScrollHeight={30}
-      enableOnAndroid={true}
-    >
-      <View style={styles.formHeaderText}>
-        <Text style={styles.formTitle}>Registra una reunión</Text>
-        <Text style={styles.formSubtitle}>
-          Registra la reunión que tuviste con algún miembro.
-        </Text>
-      </View>
+    <View style={{ flex: 1 }}>
+      <KeyboardAwareScrollView
+        contentContainerStyle={styles.formContainer}
+        keyboardShouldPersistTaps="handled"
+        extraScrollHeight={30}
+        enableOnAndroid={true}
+      >
+        <HandlerIndicator />
+        <View style={styles.formHeaderText}>
+          <Text style={styles.formTitle}>Registra una reunión</Text>
+          <Text style={styles.formSubtitle}>
+            Registra la reunión que tuviste con algún miembro.
+          </Text>
+        </View>
+        <View style={styles.formFields}>
+          {/* ── Reunión con (member picker) ── */}
 
-      <View style={styles.formFields}>
-
-        {/* ── Reunión con (member picker) ── */}
-        <FormField label="Reunión con" icon="people">
-          <TouchableOpacity onPress={() => setShowMemberOptions((prev) => !prev)}>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-              <Text style={{ color: selectedMember ? colors.primaryText : colors.secondaryText }}>
-                {selectedMember || "Selecciona a un miembro"}
-              </Text>
-              <Ionicons
-                name={showMemberOptions ? "chevron-up" : "chevron-down"}
-                size={18}
-                color={colors.secondaryText}
-              />
-            </View>
-          </TouchableOpacity>
-          {showMemberOptions && (
-            <View style={{ marginTop: 10, borderWidth: 1, borderColor: colors.border, borderRadius: 8, overflow: "hidden" }}>
-              {memberOptions.map((member) => (
-                <TouchableOpacity
-                  key={member}
-                  onPress={() => { setSelectedMember(member); setShowMemberOptions(false); }}
+          <FormField
+            label="Referencia para"
+            icon="megaphone"
+            error={errors.miembro}
+          >
+            <TouchableOpacity
+              onPress={() => memberSheetRef.current?.snapToIndex(0)}
+            >
+              <View style={styles.formSelectContainer}>
+                <Text
                   style={{
-                    paddingVertical: 12,
-                    paddingHorizontal: 14,
-                    borderBottomWidth: member !== memberOptions[memberOptions.length - 1] ? 1 : 0,
-                    borderBottomColor: colors.border,
+                    color: selectedMember
+                      ? colors.primaryText
+                      : colors.secondaryText,
                   }}
                 >
-                  <Text style={{ color: colors.primaryText }}>{member}</Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
-        </FormField>
+                  {selectedMember || "Selecciona un miembro"}
+                </Text>
+                <Ionicons
+                  name="chevron-down"
+                  size={18}
+                  color={colors.secondaryText}
+                />
+              </View>
+            </TouchableOpacity>
+          </FormField>
 
-        {/* ── Fecha de reunión ── */}
-        <FormField label="Fecha de reunión" icon="calendar-clear" date={true}>
-          <View>
-            <DateTimePicker
-              value={date}
-              mode="date"
-              display="default"
-              onChange={(_, selectedDate) => {
-                if (selectedDate) setDate(selectedDate);
+          {/* ── Fecha de reunión ── */}
+          <FormField
+            label="Fecha de la referencia"
+            icon="calendar-clear"
+            error={errors.fechaReunion}
+          >
+            <TouchableOpacity
+              onPress={() => {
+                dateSheetRef.current?.snapToIndex(0);
               }}
-            />
-            <TouchableOpacity onPress={() => {}}>
-              <Text style={{ color: colors.light, textAlign: "right" }}>
-                Confirmar
+            >
+              <Text>
+                {date.toLocaleDateString("es-ES", {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                })}
               </Text>
             </TouchableOpacity>
-          </View>
-        </FormField>
+          </FormField>
 
-        {/* ── Temas tratados ── */}
-        <FormField label="Temas tratados" icon="reader">
-          <TextInput
-            value={temas}
-            onChangeText={setTemas}
-            placeholder="Tu texto aquí..."
-            placeholderTextColor={colors.secondaryText}
-            multiline
-            numberOfLines={4}
-            style={styles.textArea}
-          />
-        </FormField>
-
-      </View>
-
-      <Button
-        label="Registrar Reunión"
-        variant="primary"
-        onPress={handleSubmit}
+          {/* ── Temas tratados ── */}
+          <FormField
+            label="Temas tratados"
+            icon="reader"
+            error={errors.temasTratados}
+          >
+            <TextInput
+              placeholder="Tu texto aquí..."
+              placeholderTextColor={colors.secondaryText}
+              multiline
+              numberOfLines={4}
+              style={styles.textArea}
+              value={form.temasTratados}
+              onChangeText={(text) => {
+                setForm({ ...form, temasTratados: text });
+                clearError("temasTratados");
+              }}
+            />
+          </FormField>
+        </View>
+        {isError && (
+          <Text style={{ color: colors.error, textAlign: "center" }}>
+            Por favor, solucione los errores antes de enviar.
+          </Text>
+        )}
+        <Button
+          label="Registrar Reunión"
+          variant="primary"
+          onPress={handleSubmit}
+        />
+      </KeyboardAwareScrollView>
+      {/* BOTTOM SHEET DE MIEMBROS */}
+      <MemberSelectSheet
+        ref={memberSheetRef}
+        options={memberOptions}
+        selected={selectedMember}
+        onSelect={(member) => {
+          setSelectedMember(member);
+          setForm((prev) => ({ ...prev, miembro: member }));
+          clearError("miembro");
+        }}
+        onOpenChange={(open) => setIsAnySheetOpen(open)}
       />
-    </KeyboardAwareScrollView>
+      {/* BOTTOM SHEET DE DATEPICKER */}
+      <DatePickerSheet
+        ref={dateSheetRef}
+        value={date}
+        onConfirm={(selectedDate) => {
+          setDate(selectedDate);
+          setForm((prev) => ({
+            ...prev,
+            fechaReunion: selectedDate,
+          }));
+          clearError("fechaReunion");
+        }}
+        onOpenChange={(open) => setIsAnySheetOpen(open)}
+      />
+    </View>
   );
 }

@@ -12,4 +12,5 @@ export const colors = {
   error: "#EF4444",
   warning: "#FBBF24",
   info: "#3B82F6",
+  handlerIndicator: "#ccc",
 };

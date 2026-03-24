@@ -1,13 +1,14 @@
 import Button from "@/components/ui/Button";
 import { DatePickerSheet } from "@/components/ui/DatePickerSheet";
 import FormField from "@/components/ui/FormField";
+import HandlerIndicator from "@/components/ui/HandlerIndicator";
 import { MemberSelectSheet } from "@/components/ui/MemberSelectSheet";
 import { crearReferenciaStyles as styles } from "@/styles/crearReferencia";
 import { colors } from "@/theme/colors";
 import { Ionicons } from "@expo/vector-icons";
-import BottomSheet, { BottomSheetBackdrop } from "@gorhom/bottom-sheet";
+import BottomSheet from "@gorhom/bottom-sheet";
 import { useNavigation, useRouter } from "expo-router";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useToast } from "../../hooks/useToast";
@@ -16,16 +17,6 @@ export default function CrearReferencia() {
   // MODAL MIEMBROS
   const memberSheetRef = useRef<BottomSheet>(null);
   const dateSheetRef = useRef<BottomSheet>(null);
-
-  const renderBackdrop = (props: any) => (
-    <BottomSheetBackdrop
-      {...props}
-      disappearsOnIndex={-1}
-      appearsOnIndex={0}
-      opacity={0.4}
-      pressBehavior="close"
-    />
-  );
 
   const [isAnySheetOpen, setIsAnySheetOpen] = useState(false);
   const navigation = useNavigation();
@@ -39,9 +30,6 @@ export default function CrearReferencia() {
 
   // MODAL DATEPICKER
   const [date, setDate] = useState(new Date());
-
-  const [tempDate, setTempDate] = useState(date);
-  const dateSnapPoints = useMemo(() => ["45%"], []);
 
   const { showToast } = useToast();
   const [tipo, setTipo] = useState<"interna" | "externa">("interna");
@@ -156,7 +144,6 @@ export default function CrearReferencia() {
     const isValid = validateForm();
 
     if (!isValid) {
-      showToast("Corrige los errores antes de continuar", "error");
       setIsError(true);
       return;
     }
@@ -174,7 +161,7 @@ export default function CrearReferencia() {
         extraScrollHeight={30}
         enableOnAndroid={true}
       >
-        <View style={styles.handlerIndicator}></View>
+        <HandlerIndicator />
         <View style={styles.referenciasText}>
           <Text style={styles.referenciasTitle}>Registra una referencia</Text>
           <Text style={styles.referenciasDescription}>
@@ -292,8 +279,8 @@ export default function CrearReferencia() {
             error={errors.descripcionReferencia}
           >
             <TextInput
-              placeholderTextColor={colors.secondaryText}
               placeholder="Describe la referencia..."
+              placeholderTextColor={colors.secondaryText}
               multiline
               numberOfLines={4}
               style={styles.textArea}

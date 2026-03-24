@@ -16,15 +16,63 @@ export type FilterType = "Pasadas" | "Próximas";
 // MOCK DATA — TODO: prisma.reunion.findMany({ where: { tipo: filter } })
 // ─────────────────────────────────────────
 const MOCK_PASADAS = [
-  { id: "1", dia: "28", mes: "Feb.", hora: "15:00", nombre: "Laura", empresa: "Empresa", descripcion: "Charla sobre contacto" },
-  { id: "2", dia: "28", mes: "Feb.", hora: "15:00", nombre: "Laura", empresa: "Empresa", descripcion: "Charla sobre contacto" },
-  { id: "3", dia: "28", mes: "Feb.", hora: "15:00", nombre: "Laura", empresa: "Empresa", descripcion: "Charla sobre contacto" },
-  { id: "4", dia: "28", mes: "Feb.", hora: "15:00", nombre: "Laura", empresa: "Empresa", descripcion: "Charla sobre contacto" },
+  {
+    id: "1",
+    dia: "28",
+    mes: "Feb.",
+    hora: "15:00",
+    nombre: "Laura",
+    empresa: "Empresa",
+    descripcion: "Charla sobre contacto",
+  },
+  {
+    id: "2",
+    dia: "28",
+    mes: "Feb.",
+    hora: "15:00",
+    nombre: "Laura",
+    empresa: "Empresa",
+    descripcion: "Charla sobre contacto",
+  },
+  {
+    id: "3",
+    dia: "28",
+    mes: "Feb.",
+    hora: "15:00",
+    nombre: "Laura",
+    empresa: "Empresa",
+    descripcion: "Charla sobre contacto",
+  },
+  {
+    id: "4",
+    dia: "28",
+    mes: "Feb.",
+    hora: "15:00",
+    nombre: "Laura",
+    empresa: "Empresa",
+    descripcion: "Charla sobre contacto",
+  },
 ];
 
 const MOCK_PROXIMAS = [
-  { id: "5", dia: "15", mes: "Abr.", hora: "10:00", nombre: "Carlos", empresa: "TechCorp", descripcion: "Seguimiento proyecto" },
-  { id: "6", dia: "22", mes: "Abr.", hora: "16:30", nombre: "Ana", empresa: "StartupX", descripcion: "Presentación propuesta" },
+  {
+    id: "5",
+    dia: "15",
+    mes: "Abr.",
+    hora: "10:00",
+    nombre: "Carlos",
+    empresa: "TechCorp",
+    descripcion: "Seguimiento proyecto",
+  },
+  {
+    id: "6",
+    dia: "22",
+    mes: "Abr.",
+    hora: "16:30",
+    nombre: "Ana",
+    empresa: "StartupX",
+    descripcion: "Presentación propuesta",
+  },
 ];
 
 export default function Reuniones() {
@@ -70,7 +118,7 @@ export default function Reuniones() {
       <Button
         containerStyle={styles.addButton}
         label="Agregar Reunión"
-        variant="addBtn"
+        variant="add"
         onPress={() => router.push("/(modals)/crearReunion")}
       />
     </View>
