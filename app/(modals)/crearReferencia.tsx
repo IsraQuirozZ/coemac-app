@@ -1,26 +1,21 @@
 import Button from "@/components/ui/Button";
+import { DatePickerSheet } from "@/components/ui/DatePickerSheet";
 import FormField from "@/components/ui/FormField";
-import {
-  bottomSheetStyles,
-  crearReferenciaStyles as styles,
-} from "@/styles/crearReferencia";
+import { MemberSelectSheet } from "@/components/ui/MemberSelectSheet";
+import { crearReferenciaStyles as styles } from "@/styles/crearReferencia";
 import { colors } from "@/theme/colors";
 import { Ionicons } from "@expo/vector-icons";
-import BottomSheet, {
-  BottomSheetBackdrop,
-  BottomSheetScrollView,
-} from "@gorhom/bottom-sheet";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import { useRouter } from "expo-router";
-import { useMemo, useRef, useState } from "react";
+import BottomSheet, { BottomSheetBackdrop } from "@gorhom/bottom-sheet";
+import { useNavigation, useRouter } from "expo-router";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useToast } from "../../hooks/useToast";
 
 export default function CrearReferencia() {
   // MODAL MIEMBROS
-  const bottomSheetRef = useRef<BottomSheet>(null);
-  const snapPoints = useMemo(() => ["40%", "60%"], []);
+  const memberSheetRef = useRef<BottomSheet>(null);
+  const dateSheetRef = useRef<BottomSheet>(null);
 
   const renderBackdrop = (props: any) => (
     <BottomSheetBackdrop
@@ -32,10 +27,24 @@ export default function CrearReferencia() {
     />
   );
 
+  const [isAnySheetOpen, setIsAnySheetOpen] = useState(false);
+  const navigation = useNavigation();
+
+  // Cuando Modal (SelectMember, Datepicker) esté abierto, deshabilitar el gesto de swipe para cerrar el modal padre (crear referencia)
+  useEffect(() => {
+    navigation.setOptions({
+      gestureEnabled: !isAnySheetOpen,
+    });
+  }, [isAnySheetOpen]);
+
+  // MODAL DATEPICKER
+  const [date, setDate] = useState(new Date());
+
+  const [tempDate, setTempDate] = useState(date);
+  const dateSnapPoints = useMemo(() => ["45%"], []);
+
   const { showToast } = useToast();
   const [tipo, setTipo] = useState<"interna" | "externa">("interna");
-  const [date, setDate] = useState(new Date());
-  const [showPicker, setShowPicker] = useState(false);
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
   const router = useRouter();
   const memberOptions = [
@@ -165,6 +174,7 @@ export default function CrearReferencia() {
         extraScrollHeight={30}
         enableOnAndroid={true}
       >
+        <View style={styles.handlerIndicator}></View>
         <View style={styles.referenciasText}>
           <Text style={styles.referenciasTitle}>Registra una referencia</Text>
           <Text style={styles.referenciasDescription}>
@@ -180,7 +190,7 @@ export default function CrearReferencia() {
             error={errors.miembro}
           >
             <TouchableOpacity
-              onPress={() => bottomSheetRef.current?.snapToIndex(0)}
+              onPress={() => memberSheetRef.current?.snapToIndex(0)}
             >
               <View style={styles.formSelectContainer}>
                 <Text
@@ -258,36 +268,21 @@ export default function CrearReferencia() {
           <FormField
             label="Fecha de la referencia"
             icon="calendar-clear"
-            date={true}
             error={errors.fechaReferencia}
           >
-            <View>
-              <DateTimePicker
-                value={date}
-                mode="date"
-                display="default"
-                onChange={(_, selectedDate) => {
-                  if (selectedDate) {
-                    setDate(selectedDate);
-
-                    setForm((prev) => ({
-                      ...prev,
-                      fechaReferencia: selectedDate,
-                    }));
-
-                    if (errors.fechaReferencia) {
-                      setErrors((prev) => ({ ...prev, fechaReferencia: "" }));
-                    }
-                  }
-                }}
-              />
-
-              <TouchableOpacity onPress={() => setShowPicker(false)}>
-                <Text style={{ color: colors.light, textAlign: "right" }}>
-                  Confirmar
-                </Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity
+              onPress={() => {
+                dateSheetRef.current?.snapToIndex(0);
+              }}
+            >
+              <Text>
+                {date.toLocaleDateString("es-ES", {
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
+                })}
+              </Text>
+            </TouchableOpacity>
           </FormField>
 
           {/* DESCRIPCION DE LA REFERENCIA */}
@@ -356,60 +351,33 @@ export default function CrearReferencia() {
           onPress={handleSubmit}
         />
       </KeyboardAwareScrollView>
-      {/* MODAL DE MIEMBROS */}
-      <BottomSheet
-        ref={bottomSheetRef}
-        index={-1}
-        snapPoints={snapPoints}
-        backgroundStyle={bottomSheetStyles.background}
-        handleIndicatorStyle={bottomSheetStyles.handleIndicator}
-        backdropComponent={renderBackdrop}
-        enablePanDownToClose={true}
-        enableHandlePanningGesture={true}
-        enableContentPanningGesture={false}
-        maxDynamicContentSize={500}
-      >
-        <BottomSheetScrollView
-          contentContainerStyle={bottomSheetStyles.container}
-          showsVerticalScrollIndicator={false}
-        >
-          <Text style={bottomSheetStyles.title}>Selecciona un miembro</Text>
+      {/* BOTTOM SHEET DE MIEMBROS */}
+      <MemberSelectSheet
+        ref={memberSheetRef}
+        options={memberOptions}
+        selected={selectedMember}
+        onSelect={(member) => {
+          setSelectedMember(member);
+          setForm((prev) => ({ ...prev, miembro: member }));
+          clearError("miembro");
+        }}
+        onOpenChange={(open) => setIsAnySheetOpen(open)}
+      />
 
-          {memberOptions.map((member) => {
-            const isSelected = selectedMember === member;
-
-            return (
-              <TouchableOpacity
-                key={member}
-                onPress={() => {
-                  setSelectedMember(member);
-                  setForm((prev) => ({ ...prev, miembro: member }));
-                  clearError("miembro");
-                  bottomSheetRef.current?.close();
-                }}
-                style={[
-                  bottomSheetStyles.item as any,
-                  isSelected && bottomSheetStyles.itemSelected,
-                ]}
-              >
-                <Text
-                  style={
-                    isSelected
-                      ? [bottomSheetStyles.text, bottomSheetStyles.textSelected]
-                      : bottomSheetStyles.text
-                  }
-                >
-                  {member}
-                </Text>
-
-                {isSelected && (
-                  <Ionicons name="checkmark" size={18} color={colors.primary} />
-                )}
-              </TouchableOpacity>
-            );
-          })}
-        </BottomSheetScrollView>
-      </BottomSheet>
+      {/* BOTTOM SHEET DE DATEPICKER */}
+      <DatePickerSheet
+        ref={dateSheetRef}
+        value={date}
+        onConfirm={(selectedDate) => {
+          setDate(selectedDate);
+          setForm((prev) => ({
+            ...prev,
+            fechaReferencia: selectedDate,
+          }));
+          clearError("fechaReferencia");
+        }}
+        onOpenChange={(open) => setIsAnySheetOpen(open)}
+      />
     </View>
   );
 }

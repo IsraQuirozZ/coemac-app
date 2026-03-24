@@ -1,3 +1,4 @@
+import { Ionicons } from "@expo/vector-icons";
 import React from "react";
 import {
   Pressable,
@@ -10,10 +11,10 @@ import {
 } from "react-native";
 import { colors } from "../../theme/colors";
 
-type ButtonVariant = "primary" | "secondary" | "addBtn";
+type ButtonVariant = "primary" | "secondary" | "add" | "close";
 
 type ButtonProps = {
-  label: string;
+  label?: string;
   variant?: ButtonVariant;
   containerStyle?: StyleProp<ViewStyle>;
   labelStyle?: StyleProp<TextStyle>;
@@ -21,70 +22,88 @@ type ButtonProps = {
 
 export default function Button({
   label,
-  variant = "secondary",
+  variant = "primary",
   containerStyle,
   labelStyle,
-  ...pressableProps
+  ...props
 }: ButtonProps) {
-  const buttonLabel = variant === "addBtn" ? "+" : label;
+  const isIconButton = variant === "add" || variant === "close";
 
   return (
     <Pressable
-      style={[styles.buttonBase, variantStyles[variant], containerStyle]}
-      {...pressableProps}
+      style={[styles.base, variantStyles[variant], containerStyle]}
+      {...props}
     >
-      <Text
-        style={[
-          styles.buttonTextBase,
-          variant === "primary" && styles.primaryText,
-          variant === "addBtn" && styles.addBtnText,
-          labelStyle,
-        ]}
-      >
-        {buttonLabel}
-      </Text>
+      {isIconButton ? (
+        <Ionicons
+          name={iconByVariant[variant]}
+          size={iconSizeByVariant[variant]}
+          color="white"
+        />
+      ) : (
+        <Text style={[styles.textBase, textVariantStyles[variant], labelStyle]}>
+          {label}
+        </Text>
+      )}
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
-  buttonBase: {
-    backgroundColor: colors.primary,
+  base: {
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 6,
+    paddingVertical: 12,
+    backgroundColor: colors.light,
   },
-  buttonTextBase: {
-    color: "white",
+
+  textBase: {
     fontSize: 14,
     fontWeight: "500",
-  },
-  addBtnText: {
-    fontSize: 22,
-    lineHeight: 24,
-    fontWeight: "600",
-  },
-  primaryText: {
-    fontSize: 18,
-    textAlign: "center",
+    color: "white",
   },
 });
 
 const variantStyles = StyleSheet.create({
   primary: {
     height: 50,
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 12,
   },
-  secondary: {},
-  addBtn: {
-    width: 60,
-    height: 60,
+
+  secondary: {
+    height: 45,
+  },
+
+  add: {
+    width: 70,
+    height: 70,
     borderRadius: 50,
-    paddingHorizontal: 0,
-    paddingVertical: 0,
-    alignItems: "center",
-    justifyContent: "center",
+  },
+
+  close: {
+    width: 70,
+    height: 70,
+    borderRadius: 50,
   },
 });
+
+const textVariantStyles = StyleSheet.create({
+  primary: {
+    fontSize: 18,
+    fontWeight: "600",
+  },
+  secondary: {},
+  add: {},
+  close: {},
+});
+
+const iconByVariant = {
+  add: "add",
+  close: "close",
+} as const;
+
+const iconSizeByVariant = {
+  add: 40,
+  close: 40,
+} as const;
