@@ -9,16 +9,24 @@ export default function RootLayout() {
         <Stack screenOptions={{ headerShown: false }}>
           <Stack.Screen name="(tabs)" />
 
-          <Stack.Screen
-            name="(modals)/crearReferencia"
-            options={{
-              presentation: "modal",
-              headerShown: false,
-              gestureEnabled: false,
-            }}
-          />
-        </Stack>
+      <Stack.Screen
+        name="(modals)/crearReferencia"
+        options={{ presentation: "modal", headerShown: false }}
+      />
+      <Stack.Screen
+        name="(modals)/crearAgradecimiento"
+        options={{ presentation: "modal", headerShown: false }}
+      />
+      <Stack.Screen
+        name="(modals)/envioAgradecimiento"
+        options={{ presentation: "modal", headerShown: false }}
+      />
+      <Stack.Screen
+        name="(modals)/crearReunion"
+        options={{ presentation: "modal", headerShown: false }}
+      />
+    </Stack>
       </ToastProvider>
     </GestureHandlerRootView>
-  );
+    );
 }
