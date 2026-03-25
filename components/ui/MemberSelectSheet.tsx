@@ -5,7 +5,7 @@ import BottomSheet, {
   BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
 import { forwardRef, useMemo } from "react";
-import { StyleSheet, Text, TouchableOpacity } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 type Props = {
   options: string[];
@@ -51,7 +51,6 @@ export const MemberSelectSheet = forwardRef<BottomSheet, Props>(
         backgroundStyle={styles.background}
         handleIndicatorStyle={styles.handleIndicator}
         backdropComponent={renderBackdrop}
-        maxDynamicContentSize={500}
         enableDynamicSizing={false}
         android_keyboardInputMode="adjustResize"
         onChange={(index) => {
@@ -61,6 +60,7 @@ export const MemberSelectSheet = forwardRef<BottomSheet, Props>(
         <BottomSheetScrollView
           contentContainerStyle={styles.container}
           showsVerticalScrollIndicator={false}
+          enableContentPanningGesture={true}
         >
           <Text style={styles.title}>{title}</Text>
 
@@ -76,15 +76,27 @@ export const MemberSelectSheet = forwardRef<BottomSheet, Props>(
                 }}
                 style={[styles.item, isSelected && styles.itemSelected]}
               >
-                <Text
-                  style={
-                    isSelected
-                      ? [styles.text, styles.textSelected]
-                      : styles.text
-                  }
-                >
-                  {item}
-                </Text>
+                <View style={styles.itemContent}>
+                  <View style={styles.avatar}>
+                    <Text style={{ color: "#fff" }}>
+                      {item
+                        .split(" ")
+                        .slice(0, 2)
+                        .map((word) => word[0])
+                        .join("")
+                        .toUpperCase()}
+                    </Text>
+                  </View>
+                  <Text
+                    style={
+                      isSelected
+                        ? [styles.text, styles.textSelected]
+                        : styles.text
+                    }
+                  >
+                    {item}
+                  </Text>
+                </View>
 
                 {isSelected && (
                   <Ionicons name="checkmark" size={18} color={colors.primary} />
@@ -120,7 +132,7 @@ export const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 16,
     paddingTop: 10,
-    paddingBottom: 30,
+    paddingBottom: 80,
   },
 
   title: {
@@ -146,6 +158,20 @@ export const styles = StyleSheet.create({
 
   itemSelected: {
     backgroundColor: colors.soft,
+  },
+  itemContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  avatar: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: colors.primary,
+    alignItems: "center",
+    justifyContent: "center",
+    // marginRight: 12,
   },
 
   text: {

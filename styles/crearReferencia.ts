@@ -8,6 +8,7 @@ export const crearReferenciaStyles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 60,
     gap: 30,
+    minHeight: "100%",
   },
   handlerIndicator: {
     width: 40,

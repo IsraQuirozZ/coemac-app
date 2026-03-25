@@ -33,22 +33,22 @@ export default function DashboardCard({
 
 const styles = StyleSheet.create({
   card: {
-    width: "46%",
+    width: "47%",
     height: 115,
     backgroundColor: "white",
     borderColor: colors.border,
     borderWidth: 1,
     borderRadius: 12,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.04,
+    shadowOffset: { width: 0, height: 1 },
     shadowRadius: 4,
+    elevation: 2, // Para Android
     padding: 12,
     justifyContent: "space-between",
   },
   cardFull: {
     width: "100%",
-    // alignItems: "center",
   },
   stats: {
     flexDirection: "row",

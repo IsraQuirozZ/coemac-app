@@ -69,6 +69,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="agradecimientos/index" />
       <Tabs.Screen name="incidencias" />
       <Tabs.Screen name="referencias/crear" options={{ href: null }} />
+      <Tabs.Screen name="profile" options={{ href: null }} />
     </Tabs>
   );
 }

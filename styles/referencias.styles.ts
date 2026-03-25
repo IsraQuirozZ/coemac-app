@@ -8,6 +8,7 @@ export const referenciasStyles = StyleSheet.create({
     paddingTop: 150,
     paddingBottom: 120,
     gap: 30,
+    minHeight: "100%",
   },
 
   referenciasText: {

@@ -2,29 +2,6 @@ import { StyleSheet } from "react-native";
 import { colors } from "../theme/colors";
 
 export const dashboardStyles = StyleSheet.create({
-  dashboardContainer: {
-    backgroundColor: colors.background,
-    paddingHorizontal: 24,
-    paddingTop: 150,
-    paddingBottom: 120,
-    gap: 30,
-  },
-
-  dashboardText: {
-    gap: 10,
-  },
-
-  dashboardTitle: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: colors.primary,
-  },
-
-  dashboardDescription: {
-    fontSize: 16,
-    color: colors.secondaryText,
-  },
-
   dashboardCards: {
     flexDirection: "row",
     flexWrap: "wrap",

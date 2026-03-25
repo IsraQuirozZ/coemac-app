@@ -1,4 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Path, Svg } from "react-native-svg";
@@ -18,6 +19,7 @@ const Header: React.FC<HeaderProps> = ({
   initials = "IQ",
 }) => {
   const { width } = useWindowDimensions();
+  const router = useRouter();
   return (
     <View style={styles.header__container}>
       <Svg
@@ -64,9 +66,12 @@ const Header: React.FC<HeaderProps> = ({
             <Ionicons name="notifications" size={25} color="#fff" />
             <View style={styles.notificationDot} />
           </TouchableOpacity>
-          <View style={styles.avatar}>
+          <TouchableOpacity
+            style={styles.avatar}
+            onPress={() => router.push("/profile")}
+          >
             <Text style={styles.avatarText}>{initials}</Text>
-          </View>
+          </TouchableOpacity>
         </View>
       </View>
     </View>

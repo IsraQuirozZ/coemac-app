@@ -1,3 +1,4 @@
+import { globalStyles } from "@/styles/globals.styles";
 import { Ionicons } from "@expo/vector-icons";
 import { useState } from "react";
 import { ScrollView, Text, TouchableOpacity, View } from "react-native";
@@ -17,13 +18,13 @@ export default function Dashboard() {
       <Header title="Dashboard" />
 
       <ScrollView
-        contentContainerStyle={styles.dashboardContainer}
+        contentContainerStyle={globalStyles.container}
         onScrollBeginDrag={() => setShowOptions(false)}
         keyboardShouldPersistTaps="always"
       >
-        <View style={styles.dashboardText}>
-          <Text style={styles.dashboardTitle}>¡Hola Usuario!</Text>
-          <Text style={styles.dashboardDescription}>
+        <View style={globalStyles.containerText}>
+          <Text style={globalStyles.containerTitle}>¡Hola Usuario!</Text>
+          <Text style={globalStyles.containerDescription}>
             Aquí tienes un resumen de tu actividad reciente.
           </Text>
         </View>

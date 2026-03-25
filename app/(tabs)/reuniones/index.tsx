@@ -19,16 +19,17 @@ const MOCK_PASADAS = [
   {
     id: "1",
     dia: "28",
-    mes: "Feb.",
+    mes: "Feb",
     hora: "15:00",
     nombre: "Laura",
     empresa: "Empresa",
-    descripcion: "Charla sobre contacto",
+    descripcion:
+      "Charla sobre contacto lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
   },
   {
     id: "2",
     dia: "28",
-    mes: "Feb.",
+    mes: "Feb",
     hora: "15:00",
     nombre: "Laura",
     empresa: "Empresa",
@@ -37,7 +38,7 @@ const MOCK_PASADAS = [
   {
     id: "3",
     dia: "28",
-    mes: "Feb.",
+    mes: "Feb",
     hora: "15:00",
     nombre: "Laura",
     empresa: "Empresa",
@@ -46,7 +47,7 @@ const MOCK_PASADAS = [
   {
     id: "4",
     dia: "28",
-    mes: "Feb.",
+    mes: "Feb",
     hora: "15:00",
     nombre: "Laura",
     empresa: "Empresa",
@@ -81,6 +82,9 @@ export default function Reuniones() {
 
   const data = filter === "Pasadas" ? MOCK_PASADAS : MOCK_PROXIMAS;
 
+  // TOGGLE DE DESCRIPCIÓN EN CARD
+  const [openCardId, setOpenCardId] = useState<string | null>(null);
+
   return (
     <View style={{ flex: 1 }}>
       <Header title="Reuniones" />
@@ -97,20 +101,33 @@ export default function Reuniones() {
           <FilterButton
             label="Pasadas"
             active={filter === "Pasadas"}
-            onPress={() => setFilter("Pasadas")}
+            onPress={() => {
+              setFilter("Pasadas");
+              setOpenCardId(null);
+            }}
           />
           <FilterButton
             label="Próximas"
             position="last"
             active={filter === "Próximas"}
-            onPress={() => setFilter("Próximas")}
+            onPress={() => {
+              setFilter("Próximas");
+              setOpenCardId(null);
+            }}
           />
         </View>
 
         {/* Lista de cards */}
         <View style={styles.cards}>
           {data.map((item) => (
-            <ReunionCard key={item.id} item={item} />
+            <ReunionCard
+              key={item.id}
+              item={item}
+              isOpen={openCardId === item.id}
+              onToggle={() =>
+                setOpenCardId((prev) => (prev === item.id ? null : item.id))
+              }
+            />
           ))}
         </View>
       </ScrollView>
@@ -119,7 +136,10 @@ export default function Reuniones() {
         containerStyle={styles.addButton}
         label="Agregar Reunión"
         variant="add"
-        onPress={() => router.push("/(modals)/crearReunion")}
+        onPress={() => {
+          router.push("/(modals)/crearReunion");
+          setOpenCardId(null);
+        }}
       />
     </View>
   );
