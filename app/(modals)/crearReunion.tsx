@@ -119,13 +119,13 @@ export default function CrearReunion() {
 
   return (
     <View style={{ flex: 1 }}>
+      <HandlerIndicator />
       <KeyboardAwareScrollView
         contentContainerStyle={styles.formContainer}
         keyboardShouldPersistTaps="handled"
         extraScrollHeight={30}
         enableOnAndroid={true}
       >
-        <HandlerIndicator />
         <View style={styles.formHeaderText}>
           <Text style={styles.formTitle}>Registra una reunión</Text>
           <Text style={styles.formSubtitle}>

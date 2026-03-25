@@ -40,6 +40,12 @@ export default function CrearReferencia() {
     "Carlos Pérez",
     "Luisa Gómez",
     "Daniel Rivera",
+    "Sofía Torres",
+    "Miguel Fernández",
+    "Laura Sánchez",
+    "Javier Ruiz",
+    "Isabel Díaz",
+    "Fernando López",
   ];
 
   // Simulación de envío de formulario
@@ -155,13 +161,13 @@ export default function CrearReferencia() {
 
   return (
     <View style={{ flex: 1 }}>
+      <HandlerIndicator />
       <KeyboardAwareScrollView
         contentContainerStyle={styles.referenciasContainer}
         keyboardShouldPersistTaps="handled"
         extraScrollHeight={30}
         enableOnAndroid={true}
       >
-        <HandlerIndicator />
         <View style={styles.referenciasText}>
           <Text style={styles.referenciasTitle}>Registra una referencia</Text>
           <Text style={styles.referenciasDescription}>

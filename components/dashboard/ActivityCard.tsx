@@ -73,9 +73,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 10,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
+    shadowOpacity: 0.04,
+    shadowOffset: { width: 0, height: 1 },
     shadowRadius: 4,
+    elevation: 2, // Para Android
     padding: 12,
   },
   cardContent: {
