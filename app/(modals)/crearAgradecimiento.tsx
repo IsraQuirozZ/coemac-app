@@ -3,7 +3,7 @@ import { DatePickerSheet } from "@/components/ui/DatePickerSheet";
 import FormField from "@/components/ui/FormField";
 import HandlerIndicator from "@/components/ui/HandlerIndicator";
 import { MemberSelectSheet } from "@/components/ui/MemberSelectSheet";
-import { agradecimientosStyles as styles } from "@/styles/agradecimientos.styles";
+import { globalStyles } from "@/styles/globals.styles";
 import { colors } from "@/theme/colors";
 import { Ionicons } from "@expo/vector-icons";
 import BottomSheet from "@gorhom/bottom-sheet";
@@ -15,8 +15,14 @@ import { useToast } from "../../hooks/useToast";
 
 // TODO: Replace with → prisma.miembro.findMany()
 const memberOptions = [
-  "Ana Martínez", "Carlos López", "Elena García", "Fernando Ruiz",
-  "Isabel Sánchez", "Javier Torres", "Laura Fernández", "Miguel Herrera",
+  { name: "Ana Martínez", company: "Tech Solutions" },
+  { name: "Carlos López", company: "Digital Pro" },
+  { name: "Elena García", company: "Innovation Labs" },
+  { name: "Fernando Ruiz", company: "Creative Agency" },
+  { name: "Isabel Sánchez", company: "Business Consulting" },
+  { name: "Javier Torres", company: "Market Leaders" },
+  { name: "Laura Fernández", company: "Design Studio" },
+  { name: "Miguel Herrera", company: "Tech Ventures" },
 ];
 
 export default function CrearAgradecimiento() {
@@ -72,9 +78,11 @@ export default function CrearAgradecimiento() {
     if (!nombre) {
       newErrors.contactoReferido = "El nombre del contacto es requerido.";
     } else if (nombre.length < 3) {
-      newErrors.contactoReferido = "El nombre debe tener al menos 3 caracteres.";
+      newErrors.contactoReferido =
+        "El nombre debe tener al menos 3 caracteres.";
     } else if (!nombreRegex.test(nombre)) {
-      newErrors.contactoReferido = "El nombre solo puede contener letras y espacios.";
+      newErrors.contactoReferido =
+        "El nombre solo puede contener letras y espacios.";
     }
 
     // IMPORTE
@@ -110,37 +118,53 @@ export default function CrearAgradecimiento() {
 
   return (
     <View style={{ flex: 1 }}>
+      <HandlerIndicator />
       <KeyboardAwareScrollView
-        contentContainerStyle={styles.formContainer}
+        contentContainerStyle={globalStyles.formContainer}
         keyboardShouldPersistTaps="handled"
         extraScrollHeight={30}
         enableOnAndroid={true}
       >
-        <HandlerIndicator />
-
-        <View style={styles.formHeaderText}>
-          <Text style={styles.formTitle}>Gracias Negocio Cerrado</Text>
-          <Text style={styles.formSubtitle}>
+        <View style={globalStyles.containerText}>
+          <Text style={globalStyles.containerTitle}>
+            Gracias Negocio Cerrado
+          </Text>
+          <Text style={globalStyles.containerDescription}>
             Agradece por el negocio que has cerrado con el contacto referido.
           </Text>
         </View>
 
-        <View style={styles.formFields}>
-
+        <View style={globalStyles.formFields}>
           {/* ── Gracias a (MemberSelectSheet) ── */}
           <FormField label="Gracias a" icon="megaphone" error={errors.miembro}>
-            <TouchableOpacity onPress={() => memberSheetRef.current?.snapToIndex(0)}>
-              <View style={styles.pickerRow}>
-                <Text style={{ color: selectedMember ? colors.primaryText : colors.secondaryText }}>
+            <TouchableOpacity
+              onPress={() => memberSheetRef.current?.snapToIndex(0)}
+            >
+              <View style={globalStyles.formSelectContainer}>
+                <Text
+                  style={{
+                    color: selectedMember
+                      ? colors.primaryText
+                      : colors.secondaryText,
+                  }}
+                >
                   {selectedMember || "Selecciona a un miembro"}
                 </Text>
-                <Ionicons name="chevron-down" size={18} color={colors.secondaryText} />
+                <Ionicons
+                  name="chevron-down"
+                  size={18}
+                  color={colors.secondaryText}
+                />
               </View>
             </TouchableOpacity>
           </FormField>
 
           {/* ── Contacto referido ── */}
-          <FormField label="Por la referencia de (contacto)" icon="person-sharp" error={errors.contactoReferido}>
+          <FormField
+            label="Por la referencia de (contacto)"
+            icon="person-sharp"
+            error={errors.contactoReferido}
+          >
             <TextInput
               placeholder="Nombre del contacto referido"
               placeholderTextColor={colors.secondaryText}
@@ -153,7 +177,11 @@ export default function CrearAgradecimiento() {
           </FormField>
 
           {/* ── Importe del negocio ── */}
-          <FormField label="Importe del negocio (€)" icon="cash" error={errors.importe}>
+          <FormField
+            label="Importe del negocio (€)"
+            icon="logo-usd"
+            error={errors.importe}
+          >
             <TextInput
               placeholder="0.00"
               placeholderTextColor={colors.secondaryText}
@@ -167,8 +195,14 @@ export default function CrearAgradecimiento() {
           </FormField>
 
           {/* ── Fecha del negocio (DatePickerSheet) ── */}
-          <FormField label="Fecha del negocio cerrado" icon="calendar-clear" error={errors.fechaNegocio}>
-            <TouchableOpacity onPress={() => dateSheetRef.current?.snapToIndex(0)}>
+          <FormField
+            label="Fecha del negocio cerrado"
+            icon="calendar-clear"
+            error={errors.fechaNegocio}
+          >
+            <TouchableOpacity
+              onPress={() => dateSheetRef.current?.snapToIndex(0)}
+            >
               <Text>
                 {date.toLocaleDateString("es-ES", {
                   day: "numeric",
@@ -178,7 +212,6 @@ export default function CrearAgradecimiento() {
               </Text>
             </TouchableOpacity>
           </FormField>
-
         </View>
 
         {isError && (
@@ -187,18 +220,25 @@ export default function CrearAgradecimiento() {
           </Text>
         )}
 
-        <Button label="Enviar Agradecimiento" variant="primary" onPress={handleSubmit} />
-
+        <Button
+          label="Enviar Agradecimiento"
+          variant="primary"
+          onPress={handleSubmit}
+        />
       </KeyboardAwareScrollView>
 
       {/* ── MemberSelectSheet ── */}
       <MemberSelectSheet
         ref={memberSheetRef}
         options={memberOptions}
-        selected={selectedMember}
+        selected={
+          selectedMember
+            ? memberOptions.find((m) => m.name === selectedMember) || null
+            : null
+        }
         onSelect={(member) => {
-          setSelectedMember(member);
-          setForm((prev) => ({ ...prev, miembro: member }));
+          setSelectedMember(member.name);
+          setForm((prev) => ({ ...prev, miembro: member.name }));
           clearError("miembro");
         }}
         onOpenChange={(open) => setIsAnySheetOpen(open)}

@@ -8,9 +8,9 @@ import { forwardRef, useMemo } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 type Props = {
-  options: string[];
-  selected: string | null;
-  onSelect: (value: string) => void;
+  options: { name: string; company: string }[];
+  selected: { name: string; company: string } | null;
+  onSelect: (value: { name: string; company: string }) => void;
   onOpenChange?: (open: boolean) => void;
   title?: string;
 };
@@ -69,7 +69,7 @@ export const MemberSelectSheet = forwardRef<BottomSheet, Props>(
 
             return (
               <TouchableOpacity
-                key={item}
+                key={item.name}
                 onPress={() => {
                   onSelect(item);
                   (ref as any)?.current?.close();
@@ -79,7 +79,7 @@ export const MemberSelectSheet = forwardRef<BottomSheet, Props>(
                 <View style={styles.itemContent}>
                   <View style={styles.avatar}>
                     <Text style={{ color: "#fff" }}>
-                      {item
+                      {item.name
                         .split(" ")
                         .slice(0, 2)
                         .map((word) => word[0])
@@ -94,7 +94,11 @@ export const MemberSelectSheet = forwardRef<BottomSheet, Props>(
                         : styles.text
                     }
                   >
-                    {item}
+                    {item.name}{" "}
+                    <Text style={{ color: colors.secondaryText }}>
+                      {" "}
+                      - {item.company}
+                    </Text>
                   </Text>
                 </View>
 

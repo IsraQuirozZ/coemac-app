@@ -22,4 +22,23 @@ export const globalStyles = StyleSheet.create({
     fontSize: 16,
     color: colors.secondaryText,
   },
+
+  // FORMULARIOS
+  formContainer: {
+    backgroundColor: colors.background,
+    paddingHorizontal: 24,
+    paddingTop: 10,
+    paddingBottom: 60,
+    gap: 30,
+    minHeight: "100%",
+  },
+  formFields: {
+    gap: 20,
+  },
+  formSelectContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  textArea: { minHeight: 100, textAlignVertical: "top", fontSize: 14 },
 });

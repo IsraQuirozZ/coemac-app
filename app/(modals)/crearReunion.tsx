@@ -3,7 +3,7 @@ import { DatePickerSheet } from "@/components/ui/DatePickerSheet";
 import FormField from "@/components/ui/FormField";
 import HandlerIndicator from "@/components/ui/HandlerIndicator";
 import { MemberSelectSheet } from "@/components/ui/MemberSelectSheet";
-import { reunionesStyles as styles } from "@/styles/reuniones.styles";
+import { globalStyles } from "@/styles/globals.styles";
 import { colors } from "@/theme/colors";
 import { Ionicons } from "@expo/vector-icons";
 import BottomSheet from "@gorhom/bottom-sheet";
@@ -15,14 +15,14 @@ import { useToast } from "../../hooks/useToast";
 
 // TODO: Replace with → prisma.miembro.findMany()
 const memberOptions = [
-  "Ana Martínez",
-  "Carlos López",
-  "Elena García",
-  "Fernando Ruiz",
-  "Isabel Sánchez",
-  "Javier Torres",
-  "Laura Fernández",
-  "Miguel Herrera",
+  { name: "Ana Martínez", company: "Tech Solutions" },
+  { name: "Carlos López", company: "Innovatech" },
+  { name: "Elena García", company: "Digital Minds" },
+  { name: "Fernando Ruiz", company: "Future Systems" },
+  { name: "Isabel Sánchez", company: "NetWorks Inc" },
+  { name: "Javier Torres", company: "Cloud Dynamics" },
+  { name: "Laura Fernández", company: "Smart Ventures" },
+  { name: "Miguel Herrera", company: "Data Solutions" },
 ];
 
 export default function CrearReunion() {
@@ -46,7 +46,6 @@ export default function CrearReunion() {
   const router = useRouter();
 
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
-  const [temas, setTemas] = useState("");
 
   // Simulación de envío de formulario
   const [form, setForm] = useState({
@@ -121,18 +120,19 @@ export default function CrearReunion() {
     <View style={{ flex: 1 }}>
       <HandlerIndicator />
       <KeyboardAwareScrollView
-        contentContainerStyle={styles.formContainer}
+        contentContainerStyle={globalStyles.formContainer}
         keyboardShouldPersistTaps="handled"
         extraScrollHeight={30}
         enableOnAndroid={true}
+        keyboardDismissMode="on-drag"
       >
-        <View style={styles.formHeaderText}>
-          <Text style={styles.formTitle}>Registra una reunión</Text>
-          <Text style={styles.formSubtitle}>
+        <View style={globalStyles.containerText}>
+          <Text style={globalStyles.containerTitle}>Registra una reunión</Text>
+          <Text style={globalStyles.containerDescription}>
             Registra la reunión que tuviste con algún miembro.
           </Text>
         </View>
-        <View style={styles.formFields}>
+        <View style={globalStyles.formFields}>
           {/* ── Reunión con (member picker) ── */}
 
           <FormField
@@ -143,7 +143,7 @@ export default function CrearReunion() {
             <TouchableOpacity
               onPress={() => memberSheetRef.current?.snapToIndex(0)}
             >
-              <View style={styles.formSelectContainer}>
+              <View style={globalStyles.formSelectContainer}>
                 <Text
                   style={{
                     color: selectedMember
@@ -194,7 +194,7 @@ export default function CrearReunion() {
               placeholderTextColor={colors.secondaryText}
               multiline
               numberOfLines={4}
-              style={styles.textArea}
+              style={globalStyles.textArea}
               value={form.temasTratados}
               onChangeText={(text) => {
                 setForm({ ...form, temasTratados: text });
@@ -218,10 +218,14 @@ export default function CrearReunion() {
       <MemberSelectSheet
         ref={memberSheetRef}
         options={memberOptions}
-        selected={selectedMember}
+        selected={
+          selectedMember
+            ? memberOptions.find((m) => m.name === selectedMember) || null
+            : null
+        }
         onSelect={(member) => {
-          setSelectedMember(member);
-          setForm((prev) => ({ ...prev, miembro: member }));
+          setSelectedMember(member.name);
+          setForm((prev) => ({ ...prev, miembro: member.name }));
           clearError("miembro");
         }}
         onOpenChange={(open) => setIsAnySheetOpen(open)}

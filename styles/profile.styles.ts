@@ -4,7 +4,6 @@ import { colors } from "../theme/colors";
 export const profileStyles = StyleSheet.create({
   profileHeader: {
     alignItems: "center",
-    // marginBottom: 30,
     gap: 10,
   },
   profileAvatarContainer: {
@@ -64,5 +63,24 @@ export const profileStyles = StyleSheet.create({
   },
   profileCards: {
     gap: 20,
+  },
+  errorText: {
+    color: colors.error,
+  },
+  nameInput: {
+    fontSize: 18,
+    fontWeight: "bold",
+    borderWidth: 1,
+    borderColor: "#ccc",
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 8,
+    textAlign: "center",
+  },
+  nameButtonsContainer: {
+    flexDirection: "row",
+    gap: 10,
+    marginTop: 10,
+    justifyContent: "center",
   },
 });
