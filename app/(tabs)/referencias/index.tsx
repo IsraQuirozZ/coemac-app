@@ -2,6 +2,7 @@ import Header from "@/components/layout/Header";
 import ReferenceCard from "@/components/referencias/ReferenceCard";
 import Button from "@/components/ui/Button";
 import FilterButton from "@/components/ui/FilterButton";
+import { globalStyles } from "@/styles/globals.styles";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { ScrollView, Text, View } from "react-native";
@@ -17,10 +18,10 @@ export default function Referencias() {
   return (
     <View style={{ flex: 1 }}>
       <Header title="Referencias" />
-      <ScrollView contentContainerStyle={styles.referenciasContainer}>
-        <View style={styles.referenciasText}>
-          <Text style={styles.referenciasTitle}>Tus Referencias</Text>
-          <Text style={styles.referenciasDescription}>
+      <ScrollView contentContainerStyle={globalStyles.container}>
+        <View style={globalStyles.containerText}>
+          <Text style={globalStyles.containerTitle}>Tus Referencias</Text>
+          <Text style={globalStyles.containerDescription}>
             Registro de referencias recibidas y enviadas.
           </Text>
         </View>

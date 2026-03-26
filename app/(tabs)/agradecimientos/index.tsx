@@ -3,6 +3,7 @@ import Header from "@/components/layout/Header";
 import Button from "@/components/ui/Button";
 import FilterButton from "@/components/ui/FilterButton";
 import { agradecimientosStyles as styles } from "@/styles/agradecimientos.styles";
+import { globalStyles } from "@/styles/globals.styles";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import { ScrollView, Text, View } from "react-native";
@@ -73,11 +74,11 @@ export default function Agradecimientos() {
     <View style={{ flex: 1 }}>
       <Header title="Agradecimientos" />
 
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={globalStyles.container}>
         {/* Título y subtítulo */}
-        <View style={styles.headerText}>
-          <Text style={styles.title}>Gracias Usuario!</Text>
-          <Text style={styles.subtitle}>
+        <View style={globalStyles.containerText}>
+          <Text style={globalStyles.containerTitle}>Gracias Usuario!</Text>
+          <Text style={globalStyles.containerDescription}>
             Registro de agradecimientos recibidos y enviados
           </Text>
         </View>

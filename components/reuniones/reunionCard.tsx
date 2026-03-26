@@ -102,8 +102,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 9,
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: 8,
-    paddingHorizontal: 4,
+    padding: 4,
   },
   cardDay: {
     fontSize: 20,

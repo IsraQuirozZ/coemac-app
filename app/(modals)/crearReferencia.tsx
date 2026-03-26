@@ -4,6 +4,7 @@ import FormField from "@/components/ui/FormField";
 import HandlerIndicator from "@/components/ui/HandlerIndicator";
 import { MemberSelectSheet } from "@/components/ui/MemberSelectSheet";
 import { crearReferenciaStyles as styles } from "@/styles/crearReferencia";
+import { globalStyles } from "@/styles/globals.styles";
 import { colors } from "@/theme/colors";
 import { Ionicons } from "@expo/vector-icons";
 import BottomSheet from "@gorhom/bottom-sheet";
@@ -36,16 +37,16 @@ export default function CrearReferencia() {
   const [selectedMember, setSelectedMember] = useState<string | null>(null);
   const router = useRouter();
   const memberOptions = [
-    "Ana Martínez",
-    "Carlos Pérez",
-    "Luisa Gómez",
-    "Daniel Rivera",
-    "Sofía Torres",
-    "Miguel Fernández",
-    "Laura Sánchez",
-    "Javier Ruiz",
-    "Isabel Díaz",
-    "Fernando López",
+    { name: "Ana Martínez", company: "Tech Solutions" },
+    { name: "Carlos Pérez", company: "Innovate Co" },
+    { name: "Luisa Gómez", company: "Digital Partners" },
+    { name: "Daniel Rivera", company: "Global Ventures" },
+    { name: "Sofía Torres", company: "Future Systems" },
+    { name: "Miguel Fernández", company: "Smart Business" },
+    { name: "Laura Sánchez", company: "NextGen Inc" },
+    { name: "Javier Ruiz", company: "Prime Solutions" },
+    { name: "Isabel Díaz", company: "Apex Consulting" },
+    { name: "Fernando López", company: "Elite Group" },
   ];
 
   // Simulación de envío de formulario
@@ -163,19 +164,22 @@ export default function CrearReferencia() {
     <View style={{ flex: 1 }}>
       <HandlerIndicator />
       <KeyboardAwareScrollView
-        contentContainerStyle={styles.referenciasContainer}
+        contentContainerStyle={globalStyles.formContainer}
         keyboardShouldPersistTaps="handled"
         extraScrollHeight={30}
         enableOnAndroid={true}
+        keyboardDismissMode="on-drag"
       >
-        <View style={styles.referenciasText}>
-          <Text style={styles.referenciasTitle}>Registra una referencia</Text>
-          <Text style={styles.referenciasDescription}>
+        <View style={globalStyles.containerText}>
+          <Text style={globalStyles.containerTitle}>
+            Registra una referencia
+          </Text>
+          <Text style={globalStyles.containerDescription}>
             Referencia un contacto a un miembro de Coemac para que pueda
             ayudarlo a resolver su problema.
           </Text>
         </View>
-        <View style={styles.formContainer}>
+        <View style={globalStyles.formFields}>
           {/* PARA QUIEN ES LA REFERENCIA */}
           <FormField
             label="Referencia para"
@@ -185,7 +189,7 @@ export default function CrearReferencia() {
             <TouchableOpacity
               onPress={() => memberSheetRef.current?.snapToIndex(0)}
             >
-              <View style={styles.formSelectContainer}>
+              <View style={globalStyles.formSelectContainer}>
                 <Text
                   style={{
                     color: selectedMember
@@ -289,7 +293,7 @@ export default function CrearReferencia() {
               placeholderTextColor={colors.secondaryText}
               multiline
               numberOfLines={4}
-              style={styles.textArea}
+              style={globalStyles.textArea}
               value={form.descripcionReferencia}
               onChangeText={(text) => {
                 setForm({ ...form, descripcionReferencia: text });
@@ -348,10 +352,14 @@ export default function CrearReferencia() {
       <MemberSelectSheet
         ref={memberSheetRef}
         options={memberOptions}
-        selected={selectedMember}
+        selected={
+          selectedMember
+            ? memberOptions.find((m) => m.name === selectedMember) || null
+            : null
+        }
         onSelect={(member) => {
-          setSelectedMember(member);
-          setForm((prev) => ({ ...prev, miembro: member }));
+          setSelectedMember(member.name);
+          setForm((prev) => ({ ...prev, miembro: member.name }));
           clearError("miembro");
         }}
         onOpenChange={(open) => setIsAnySheetOpen(open)}
