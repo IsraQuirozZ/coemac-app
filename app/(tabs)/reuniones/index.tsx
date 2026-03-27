@@ -2,6 +2,7 @@ import Header from "@/components/layout/Header";
 import ReunionCard from "@/components/reuniones/reunionCard";
 import Button from "@/components/ui/Button";
 import FilterButton from "@/components/ui/FilterButton";
+import { globalStyles } from "@/styles/globals.styles";
 import { reunionesStyles as styles } from "@/styles/reuniones.styles";
 import { useRouter } from "expo-router";
 import { useState } from "react";
@@ -89,11 +90,13 @@ export default function Reuniones() {
     <View style={{ flex: 1 }}>
       <Header title="Reuniones" />
 
-      <ScrollView contentContainerStyle={styles.container}>
+      <ScrollView contentContainerStyle={globalStyles.container}>
         {/* Título y subtítulo */}
-        <View style={styles.headerText}>
-          <Text style={styles.title}>Tus Reuniones</Text>
-          <Text style={styles.subtitle}>Registro de tus reuniones.</Text>
+        <View style={globalStyles.containerText}>
+          <Text style={globalStyles.containerTitle}>Tus Reuniones</Text>
+          <Text style={globalStyles.containerDescription}>
+            Registro de tus reuniones.
+          </Text>
         </View>
 
         {/* Filtros Pasadas / Próximas */}
@@ -118,7 +121,7 @@ export default function Reuniones() {
         </View>
 
         {/* Lista de cards */}
-        <View style={styles.cards}>
+        <View style={globalStyles.formFields}>
           {data.map((item) => (
             <ReunionCard
               key={item.id}
