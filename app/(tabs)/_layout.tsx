@@ -32,7 +32,7 @@ export default function TabsLayout() {
               iconName = "heart";
               label = "GNC";
               break;
-            case "incidencias":
+            case "incidencias/index":
               iconName = "alert-circle";
               label = "Incidencias";
               break;
@@ -67,8 +67,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="referencias/index" />
       <Tabs.Screen name="reuniones/index" />
       <Tabs.Screen name="agradecimientos/index" />
-      <Tabs.Screen name="incidencias" />
-      <Tabs.Screen name="referencias/crear" options={{ href: null }} />
+      <Tabs.Screen name="incidencias/index" />
       <Tabs.Screen name="profile" options={{ href: null }} />
     </Tabs>
   );

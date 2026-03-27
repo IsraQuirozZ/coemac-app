@@ -28,6 +28,10 @@ export default function RootLayout() {
             name="(modals)/crearReunion"
             options={{ presentation: "modal", headerShown: false }}
           />
+          <Stack.Screen
+            name="(modals)/crearIncidencia"
+            options={{ presentation: "modal", headerShown: false }}
+          />
         </Stack>
       </ToastProvider>
     </GestureHandlerRootView>
