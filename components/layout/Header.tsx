@@ -1,4 +1,3 @@
-import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -9,15 +8,10 @@ import { useWindowDimensions } from "react-native";
 
 type HeaderProps = {
   title: string;
-  onNotificationPress?: () => void;
   initials?: string;
 };
 
-const Header: React.FC<HeaderProps> = ({
-  title,
-  onNotificationPress,
-  initials = "IQ",
-}) => {
+const Header: React.FC<HeaderProps> = ({ title, initials = "IQ" }) => {
   const { width } = useWindowDimensions();
   const router = useRouter();
   return (
@@ -58,21 +52,12 @@ const Header: React.FC<HeaderProps> = ({
       <View style={styles.content}>
         <Text style={styles.title}>{title}</Text>
 
-        <View style={styles.rightSection}>
-          <TouchableOpacity
-            style={styles.iconContainer}
-            onPress={onNotificationPress}
-          >
-            <Ionicons name="notifications" size={25} color="#fff" />
-            <View style={styles.notificationDot} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.avatar}
-            onPress={() => router.push("/profile")}
-          >
-            <Text style={styles.avatarText}>{initials}</Text>
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          style={styles.avatar}
+          onPress={() => router.push("/profile")}
+        >
+          <Text style={styles.avatarText}>{initials}</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -86,7 +71,6 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,
     right: 0,
-    // height: 130,
     paddingTop: 55,
     paddingBottom: 25,
     zIndex: 100,
@@ -112,26 +96,6 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "600",
     color: "#fff",
-  },
-
-  rightSection: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 15,
-  },
-
-  iconContainer: {
-    position: "relative",
-  },
-
-  notificationDot: {
-    position: "absolute",
-    top: 1,
-    right: -2,
-    width: 10,
-    height: 10,
-    borderRadius: 50,
-    backgroundColor: colors.error,
   },
 
   avatar: {

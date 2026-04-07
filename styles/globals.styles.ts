@@ -41,4 +41,12 @@ export const globalStyles = StyleSheet.create({
     alignItems: "center",
   },
   textArea: { minHeight: 100, textAlignVertical: "top", fontSize: 14 },
+
+  // BOTÓN AGREGAR
+  addButton: {
+    position: "absolute",
+    bottom: 110,
+    right: 24,
+    zIndex: 100,
+  },
 });
