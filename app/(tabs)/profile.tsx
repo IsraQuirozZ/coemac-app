@@ -19,6 +19,7 @@ import {
   View,
 } from "react-native";
 import Button from "../../components/ui/Button";
+import { useAuth } from "../../context/AuthContext";
 import { profileStyles as styles } from "../../styles/profile.styles";
 
 export default function Profile() {
@@ -196,6 +197,9 @@ export default function Profile() {
     });
   }, [isAnySheetOpen, isEditing]);
 
+  // LOGOUT
+  const { logout } = useAuth();
+
   return (
     <View style={{ flex: 1 }}>
       <Header title="Perfil de Usuario"></Header>
@@ -367,6 +371,14 @@ export default function Profile() {
             onPress={() => setIsEditing(true)}
           />
         )}
+        <Button
+          label="Cerrar Sesión"
+          variant="danger"
+          onPress={() => {
+            logout();
+            showToast("Sesión cerrada", "info");
+          }}
+        />
       </ScrollView>
       {/* BOTTOM SHEET DE DATEPICKER */}
       <DatePickerSheet

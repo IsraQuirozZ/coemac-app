@@ -51,7 +51,7 @@ export default function Toast({ message, type = "success" }: ToastProps) {
     error: "close-circle",
     warning: "alert-circle",
     info: "information-circle",
-  }[type] as const;
+  } as const;
 
   return (
     <Animated.View
@@ -61,7 +61,7 @@ export default function Toast({ message, type = "success" }: ToastProps) {
         { opacity, transform: [{ translateY }] },
       ]}
     >
-      <Ionicons name={iconName} size={24} color="white" />
+      <Ionicons name={iconName[type]} size={24} color="white" />
       <Text style={styles.text}>{message}</Text>
     </Animated.View>
   );
