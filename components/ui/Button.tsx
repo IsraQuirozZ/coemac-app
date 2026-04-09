@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { colors } from "../../theme/colors";
 
-type ButtonVariant = "primary" | "secondary" | "add" | "close";
+type ButtonVariant = "primary" | "secondary" | "add" | "close" | "danger";
 
 type ButtonProps = {
   label?: string;
@@ -86,6 +86,10 @@ const variantStyles = StyleSheet.create({
     height: 70,
     borderRadius: 50,
   },
+  danger: {
+    height: 50,
+    backgroundColor: colors.error,
+  },
 });
 
 const textVariantStyles = StyleSheet.create({
@@ -96,6 +100,10 @@ const textVariantStyles = StyleSheet.create({
   secondary: {},
   add: {},
   close: {},
+  danger: {
+    fontSize: 18,
+    fontWeight: "600",
+  },
 });
 
 const iconByVariant = {

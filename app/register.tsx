@@ -1,23 +1,23 @@
-import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { Ionicons } from "@expo/vector-icons";
+import { useRouter } from "expo-router";
+import React, { useState } from "react";
 import {
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
-} from 'react-native';
-import { PLACEHOLDER, PRIMARY, styles } from '../styles/register.styles';
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { PLACEHOLDER, PRIMARY, styles } from "../styles/register.styles";
 
 export default function RegisterScreen() {
   const router = useRouter();
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [repeatPassword, setRepeatPassword] = useState('');
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [repeatPassword, setRepeatPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showRepeatPassword, setShowRepeatPassword] = useState(false);
   const [usernameFocused, setUsernameFocused] = useState(false);
@@ -27,13 +27,13 @@ export default function RegisterScreen() {
 
   const handleRegister = () => {
     // TODO: implement registration logic
-    console.log('Register with:', username, email, password, repeatPassword);
+    console.log("Register with:", username, email, password, repeatPassword);
   };
 
   return (
     <KeyboardAvoidingView
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -47,9 +47,16 @@ export default function RegisterScreen() {
         </View>
 
         {/* Campo Username — card independiente */}
-        <View style={[styles.fieldCard, usernameFocused && styles.fieldCardActive]}>
+        <View
+          style={[styles.fieldCard, usernameFocused && styles.fieldCardActive]}
+        >
           <View style={styles.labelRow}>
-            <Ionicons name="person-outline" size={20} color={PRIMARY} style={styles.labelIcon} />
+            <Ionicons
+              name="person-outline"
+              size={20}
+              color={PRIMARY}
+              style={styles.labelIcon}
+            />
             <Text style={styles.label}>Username</Text>
           </View>
           <TextInput
@@ -66,9 +73,16 @@ export default function RegisterScreen() {
         </View>
 
         {/* Campo Email — card independiente */}
-        <View style={[styles.fieldCard, emailFocused && styles.fieldCardActive]}>
+        <View
+          style={[styles.fieldCard, emailFocused && styles.fieldCardActive]}
+        >
           <View style={styles.labelRow}>
-            <Ionicons name="mail-outline" size={20} color={PRIMARY} style={styles.labelIcon} />
+            <Ionicons
+              name="mail-outline"
+              size={20}
+              color={PRIMARY}
+              style={styles.labelIcon}
+            />
             <Text style={styles.label}>Email</Text>
           </View>
           <TextInput
@@ -86,9 +100,16 @@ export default function RegisterScreen() {
         </View>
 
         {/* Campo Password — card independiente */}
-        <View style={[styles.fieldCard, passwordFocused && styles.fieldCardActive]}>
+        <View
+          style={[styles.fieldCard, passwordFocused && styles.fieldCardActive]}
+        >
           <View style={styles.labelRow}>
-            <Ionicons name="lock-closed-outline" size={20} color={PRIMARY} style={styles.labelIcon} />
+            <Ionicons
+              name="lock-closed-outline"
+              size={20}
+              color={PRIMARY}
+              style={styles.labelIcon}
+            />
             <Text style={styles.label}>Password</Text>
           </View>
           <View style={styles.inputPasswordWrapper}>
@@ -108,7 +129,7 @@ export default function RegisterScreen() {
               onPress={() => setShowPassword(!showPassword)}
             >
               <Ionicons
-                name={showPassword ? 'eye-outline' : 'eye-off-outline'}
+                name={showPassword ? "eye-outline" : "eye-off-outline"}
                 size={20}
                 color={PLACEHOLDER}
               />
@@ -117,9 +138,16 @@ export default function RegisterScreen() {
         </View>
 
         {/* Campo Repeat Password — card independiente */}
-        <View style={[styles.fieldCard, repeatFocused && styles.fieldCardActive]}>
+        <View
+          style={[styles.fieldCard, repeatFocused && styles.fieldCardActive]}
+        >
           <View style={styles.labelRow}>
-            <Ionicons name="lock-closed-outline" size={20} color={PRIMARY} style={styles.labelIcon} />
+            <Ionicons
+              name="lock-closed-outline"
+              size={20}
+              color={PRIMARY}
+              style={styles.labelIcon}
+            />
             <Text style={styles.label}>Repeat password</Text>
           </View>
           <View style={styles.inputPasswordWrapper}>
@@ -139,7 +167,7 @@ export default function RegisterScreen() {
               onPress={() => setShowRepeatPassword(!showRepeatPassword)}
             >
               <Ionicons
-                name={showRepeatPassword ? 'eye-outline' : 'eye-off-outline'}
+                name={showRepeatPassword ? "eye-outline" : "eye-off-outline"}
                 size={20}
                 color={PLACEHOLDER}
               />
@@ -148,18 +176,21 @@ export default function RegisterScreen() {
         </View>
 
         {/* Botón Registrarse */}
-        <TouchableOpacity style={styles.button} onPress={handleRegister} activeOpacity={0.85}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={handleRegister}
+          activeOpacity={0.85}
+        >
           <Text style={styles.buttonText}>Registrarse</Text>
         </TouchableOpacity>
 
         {/* Link a Login */}
         <View style={styles.loginRow}>
           <Text style={styles.loginLabel}>¿Ya tienes una cuenta?</Text>
-          <TouchableOpacity onPress={() => router.push('/login')}>
+          <TouchableOpacity onPress={() => router.push("/login")}>
             <Text style={styles.loginLink}>Inicia sesión</Text>
           </TouchableOpacity>
         </View>
-
       </ScrollView>
     </KeyboardAvoidingView>
   );

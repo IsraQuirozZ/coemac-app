@@ -4,8 +4,9 @@ import Button from "@/components/ui/Button";
 import FilterButton from "@/components/ui/FilterButton";
 import { globalStyles } from "@/styles/globals.styles";
 import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
+import { getReferencias } from "../../../services/referenciaService";
 import { referenciasStyles as styles } from "../../../styles/referencias.styles";
 
 export default function Referencias() {
@@ -14,6 +15,19 @@ export default function Referencias() {
     "Recibidas",
   );
   const [tipo, setTipo] = useState<"Todas" | "Internas" | "Externas">("Todas");
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const data = await getReferencias();
+        console.log("REFERENCIAS:", data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   return (
     <View style={{ flex: 1 }}>
