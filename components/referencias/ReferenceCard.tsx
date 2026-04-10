@@ -5,20 +5,24 @@ import { colors } from "../../theme/colors";
 
 type ReferenceCardProps = {
   referrer: string;
-  employment: string;
+  position: string;
   number: string;
+  email: string;
   member: string;
   referenceType: string;
+  memberLabel: string;
   date: string;
   viewed: boolean;
 };
 
 export default function ReferenceCard({
   referrer,
-  employment,
+  position,
   number,
+  email,
   member,
   referenceType,
+  memberLabel,
   date,
   viewed = false,
 }: ReferenceCardProps) {
@@ -46,7 +50,7 @@ export default function ReferenceCard({
     <View style={[styles.card, viewed && styles.viewedCard]}>
       <View style={styles.referrerContainer}>
         <Text style={styles.referrer}>
-          {referrer} <Text style={styles.employment}>- {employment}</Text>
+          {referrer} <Text style={styles.position}>- {position}</Text>
         </Text>
         {!viewed && <Animated.View style={[styles.viewedDot, { opacity }]} />}
       </View>
@@ -56,8 +60,14 @@ export default function ReferenceCard({
           <Text style={styles.infoText}>{number}</Text>
         </View>
         <View style={styles.info}>
+          <Ionicons name="mail" size={20} color={colors.primary} />
+          <Text style={styles.infoText}>{email}</Text>
+        </View>
+        <View style={styles.info}>
           <Ionicons name="person" size={20} color={colors.primary} />
-          <Text style={styles.infoText}>De: {member}</Text>
+          <Text style={styles.infoText}>
+            {memberLabel}: {member}
+          </Text>
         </View>
         <View style={styles.infoDate}>
           <View style={styles.info}>
@@ -107,7 +117,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: colors.primary,
   },
-  employment: {
+  position: {
     fontSize: 16,
     color: colors.secondaryText,
     fontWeight: "300",

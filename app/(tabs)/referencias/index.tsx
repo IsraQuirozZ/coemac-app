@@ -3,9 +3,10 @@ import ReferenceCard from "@/components/referencias/ReferenceCard";
 import Button from "@/components/ui/Button";
 import FilterButton from "@/components/ui/FilterButton";
 import { globalStyles } from "@/styles/globals.styles";
+import { colors } from "@/theme/colors";
 import { useRouter } from "expo-router";
 import { useEffect, useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 import { getReferencias } from "../../../services/referenciaService";
 import { referenciasStyles as styles } from "../../../styles/referencias.styles";
 
@@ -16,18 +17,60 @@ export default function Referencias() {
   );
   const [tipo, setTipo] = useState<"Todas" | "Internas" | "Externas">("Todas");
 
+  const [referencias, setReferencias] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await getReferencias();
+        setLoading(true);
+
+        const direction = direccion === "Recibidas" ? "recibidas" : "enviadas";
+
+        const data = await getReferencias({
+          direction,
+          tipo,
+          page: 1,
+          limit: 10,
+        });
+
+        setReferencias(data.data);
         console.log("REFERENCIAS:", data);
       } catch (err) {
         console.error(err);
+      } finally {
+        setLoading(false);
       }
     };
 
     fetchData();
-  }, []);
+  }, [direccion, tipo]);
+
+  const mapReferenciaToCard = (ref: any) => {
+    const isRecibida = direccion === "Recibidas";
+
+    const member = isRecibida
+      ? `${ref.emisor.nombre} ${ref.emisor.apellido}`
+      : `${ref.receptor.nombre} ${ref.receptor.apellido}`;
+
+    const label = isRecibida ? "De" : "Para";
+
+    return {
+      ...ref,
+      member,
+      label,
+    };
+  };
+
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+
+    return date.toLocaleDateString("es-ES", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
+  };
 
   return (
     <View style={{ flex: 1 }}>
@@ -72,35 +115,34 @@ export default function Referencias() {
           />
         </View>
 
-        <View style={styles.referenceCards}>
-          <ReferenceCard
-            referrer="John Doe"
-            employment="Company XYZ"
-            number="123456789"
-            member="Jane Smith"
-            referenceType="Internal"
-            date="2024-06-01"
-            viewed={false}
-          />
-          <ReferenceCard
-            referrer="John Doe"
-            employment="Company XYZ"
-            number="123456789"
-            member="Jane Smith"
-            referenceType="Internal"
-            date="2024-06-01"
-            viewed={false}
-          />
-          <ReferenceCard
-            referrer="John Doe"
-            employment="Company XYZ"
-            number="123456789"
-            member="Jane Smith"
-            referenceType="Interna"
-            date="2024-06-01"
-            viewed={true}
-          />
-        </View>
+        {loading ? (
+          <ActivityIndicator color={colors.primary} />
+        ) : referencias.length === 0 ? (
+          <Text style={styles.noDataText}>
+            No hay referencias para mostrar.
+          </Text>
+        ) : (
+          <View style={styles.referenceCards}>
+            {referencias.map((ref) => {
+              const mappedRef = mapReferenciaToCard(ref);
+
+              return (
+                <ReferenceCard
+                  key={ref.id}
+                  referrer={ref.nombreContacto}
+                  position={ref?.cargoContacto || "No especificado"}
+                  number={ref?.telefonoContacto || "No especificado"}
+                  email={ref?.emailContacto || "No especificado"}
+                  member={mappedRef.member}
+                  memberLabel={mappedRef.label}
+                  referenceType={ref.tipo}
+                  date={formatDate(ref.createdAt)}
+                  viewed={false}
+                />
+              );
+            })}
+          </View>
+        )}
       </ScrollView>
       <Button
         containerStyle={styles.addButton}
