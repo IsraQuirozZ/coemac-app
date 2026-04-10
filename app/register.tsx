@@ -1,197 +1,297 @@
+import Button from "@/components/ui/Button";
+import FormField from "@/components/ui/FormField";
+import { useToast } from "@/hooks/useToast";
+import { registerRequest } from "@/services/authService";
+import { globalStyles } from "@/styles/globals.styles";
+import { colors } from "@/theme/colors";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
+  ActivityIndicator,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
-import { PLACEHOLDER, PRIMARY, styles } from "../styles/register.styles";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+
+import { styles } from "../styles/register.styles";
+
+// TYPES
+type FormType = {
+  nombre: string;
+  apellido: string;
+  username: string;
+  email: string;
+  password: string;
+  repeatPassword: string;
+};
+
+const initialForm: FormType = {
+  nombre: "",
+  apellido: "",
+  username: "",
+  email: "",
+  password: "",
+  repeatPassword: "",
+};
 
 export default function RegisterScreen() {
+  const { showToast } = useToast();
   const router = useRouter();
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [repeatPassword, setRepeatPassword] = useState("");
+
+  const [form, setForm] = useState<FormType>(initialForm);
+  const [errors, setErrors] = useState<Partial<FormType>>({});
+  const [error, setError] = useState<string | null>(null);
+
   const [showPassword, setShowPassword] = useState(false);
   const [showRepeatPassword, setShowRepeatPassword] = useState(false);
-  const [usernameFocused, setUsernameFocused] = useState(false);
-  const [emailFocused, setEmailFocused] = useState(false);
-  const [passwordFocused, setPasswordFocused] = useState(false);
-  const [repeatFocused, setRepeatFocused] = useState(false);
 
-  const handleRegister = () => {
-    // TODO: implement registration logic
-    console.log("Register with:", username, email, password, repeatPassword);
+  const [loading, setLoading] = useState(false);
+
+  // VALIDATORS
+  const validators = {
+    nombre: (value: string) => {
+      if (!value.trim()) return "El nombre es obligatorio";
+      if (value.length < 3 || value.length > 50)
+        return "Entre 3 y 50 caracteres";
+      if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(value))
+        return "Solo letras y espacios";
+      return "";
+    },
+
+    apellido: (value: string) => {
+      if (!value.trim()) return "El apellido es obligatorio";
+      if (value.length < 3 || value.length > 50)
+        return "Entre 3 y 50 caracteres";
+      if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(value))
+        return "Solo letras y espacios";
+      return "";
+    },
+
+    username: (value: string) => {
+      if (!value.trim()) return "El username es obligatorio";
+      if (value.length < 3 || value.length > 20)
+        return "Entre 3 y 20 caracteres";
+      if (!/^[a-zA-Z0-9_]+$/.test(value)) return "Solo letras, números y _";
+      return "";
+    },
+
+    email: (value: string) => {
+      if (!value.trim()) return "El email es obligatorio";
+      if (value.length > 100) return "Máx 100 caracteres";
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return "Email inválido";
+      return "";
+    },
+
+    password: (value: string) => {
+      if (!value) return "La contraseña es obligatoria";
+      if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/.test(value))
+        return "Debe tener mayúscula, minúscula, número y símbolo";
+      return "";
+    },
+
+    repeatPassword: (value: string) => {
+      if (!value) return "Repite la contraseña";
+      if (value !== form.password) return "Las contraseñas no coinciden";
+      return "";
+    },
+  };
+
+  // HANDLE CHANGE
+  const handleChange = (field: keyof FormType, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+    }
+  };
+
+  // VALIDATE FORM
+  const validateForm = () => {
+    const newErrors: Partial<FormType> = {};
+
+    (Object.keys(form) as (keyof FormType)[]).forEach((field) => {
+      const error = validators[field]?.(form[field]);
+      if (error) newErrors[field] = error;
+    });
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // SUBMIT
+  const handleRegister = async () => {
+    setError(null);
+
+    if (!validateForm()) return;
+
+    const data = {
+      nombre: form.nombre.trim(),
+      apellido: form.apellido.trim(),
+      username: form.username.trim(),
+      email: form.email.trim(),
+      password: form.password,
+    };
+
+    try {
+      setLoading(true);
+
+      await registerRequest(data);
+
+      showToast("Registro exitoso, ya puedes iniciar sesión", "success");
+
+      router.replace({ pathname: "/login", params: { email: form.email } });
+    } catch (err: any) {
+      setError(err?.message || "Error al registrarse");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
+    <View style={{ flex: 1 }}>
+      <KeyboardAwareScrollView
+        contentContainerStyle={styles.formContainer}
         keyboardShouldPersistTaps="handled"
+        extraScrollHeight={30}
+        enableOnAndroid
+        keyboardDismissMode="on-drag"
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>¡Crea tu cuenta!</Text>
-          <Text style={styles.subtitle}>Regístrate para comenzar</Text>
+          <Text style={globalStyles.containerTitle}>¡Crea tu cuenta!</Text>
+          <Text style={globalStyles.containerDescription}>
+            Regístrate para comenzar
+          </Text>
         </View>
 
-        {/* Campo Username — card independiente */}
-        <View
-          style={[styles.fieldCard, usernameFocused && styles.fieldCardActive]}
-        >
-          <View style={styles.labelRow}>
-            <Ionicons
-              name="person-outline"
-              size={20}
-              color={PRIMARY}
-              style={styles.labelIcon}
+        <View style={globalStyles.formFields}>
+          {/* NOMBRE */}
+          <FormField label="Nombre" icon="person-sharp" error={errors.nombre}>
+            <TextInput
+              placeholder="Nombre"
+              placeholderTextColor={colors.secondaryText}
+              value={form.nombre}
+              onChangeText={(text) => handleChange("nombre", text)}
             />
-            <Text style={styles.label}>Username</Text>
-          </View>
-          <TextInput
-            style={styles.inputBox}
-            placeholder="Tu nombre"
-            placeholderTextColor={PLACEHOLDER}
-            value={username}
-            onChangeText={setUsername}
-            autoCapitalize="none"
-            autoCorrect={false}
-            onFocus={() => setUsernameFocused(true)}
-            onBlur={() => setUsernameFocused(false)}
-          />
-        </View>
+          </FormField>
 
-        {/* Campo Email — card independiente */}
-        <View
-          style={[styles.fieldCard, emailFocused && styles.fieldCardActive]}
-        >
-          <View style={styles.labelRow}>
-            <Ionicons
-              name="mail-outline"
-              size={20}
-              color={PRIMARY}
-              style={styles.labelIcon}
+          {/* APELLIDO */}
+          <FormField
+            label="Apellido"
+            icon="person-sharp"
+            error={errors.apellido}
+          >
+            <TextInput
+              placeholder="Apellido"
+              placeholderTextColor={colors.secondaryText}
+              value={form.apellido}
+              onChangeText={(text) => handleChange("apellido", text)}
             />
-            <Text style={styles.label}>Email</Text>
-          </View>
-          <TextInput
-            style={styles.inputBox}
-            placeholder="correo@networking.com"
-            placeholderTextColor={PLACEHOLDER}
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-            onFocus={() => setEmailFocused(true)}
-            onBlur={() => setEmailFocused(false)}
-          />
-        </View>
+          </FormField>
 
-        {/* Campo Password — card independiente */}
-        <View
-          style={[styles.fieldCard, passwordFocused && styles.fieldCardActive]}
-        >
-          <View style={styles.labelRow}>
-            <Ionicons
-              name="lock-closed-outline"
-              size={20}
-              color={PRIMARY}
-              style={styles.labelIcon}
+          {/* USERNAME */}
+          <FormField label="Username" icon="at" error={errors.username}>
+            <TextInput
+              placeholder="Username"
+              placeholderTextColor={colors.secondaryText}
+              value={form.username}
+              onChangeText={(text) => handleChange("username", text)}
             />
-            <Text style={styles.label}>Password</Text>
-          </View>
-          <View style={styles.inputPasswordWrapper}>
+          </FormField>
+
+          {/* EMAIL */}
+          <FormField label="Email" icon="mail" error={errors.email}>
+            <TextInput
+              placeholder="tucorreo@networking.com"
+              placeholderTextColor={colors.secondaryText}
+              value={form.email}
+              onChangeText={(text) => handleChange("email", text)}
+              autoCapitalize="none"
+            />
+          </FormField>
+
+          {/* PASSWORD */}
+          <FormField
+            label="Contraseña"
+            icon="lock-closed"
+            error={errors.password}
+            password
+          >
             <TextInput
               style={styles.inputPassword}
-              placeholder="**********"
-              placeholderTextColor={PLACEHOLDER}
-              value={password}
-              onChangeText={setPassword}
+              placeholder="********"
+              placeholderTextColor={colors.secondaryText}
+              value={form.password}
+              onChangeText={(text) => handleChange("password", text)}
               secureTextEntry={!showPassword}
               autoCapitalize="none"
-              onFocus={() => setPasswordFocused(true)}
-              onBlur={() => setPasswordFocused(false)}
             />
             <TouchableOpacity
               style={styles.eyeButton}
-              onPress={() => setShowPassword(!showPassword)}
+              onPress={() => setShowPassword((prev) => !prev)}
             >
               <Ionicons
                 name={showPassword ? "eye-outline" : "eye-off-outline"}
                 size={20}
-                color={PLACEHOLDER}
+                color={colors.secondaryText}
               />
             </TouchableOpacity>
-          </View>
-        </View>
+          </FormField>
 
-        {/* Campo Repeat Password — card independiente */}
-        <View
-          style={[styles.fieldCard, repeatFocused && styles.fieldCardActive]}
-        >
-          <View style={styles.labelRow}>
-            <Ionicons
-              name="lock-closed-outline"
-              size={20}
-              color={PRIMARY}
-              style={styles.labelIcon}
-            />
-            <Text style={styles.label}>Repeat password</Text>
-          </View>
-          <View style={styles.inputPasswordWrapper}>
+          {/* REPEAT PASSWORD */}
+          <FormField
+            label="Repetir Contraseña"
+            icon="lock-closed"
+            error={errors.repeatPassword}
+            password
+          >
             <TextInput
               style={styles.inputPassword}
-              placeholder="**********"
-              placeholderTextColor={PLACEHOLDER}
-              value={repeatPassword}
-              onChangeText={setRepeatPassword}
+              placeholder="********"
+              placeholderTextColor={colors.secondaryText}
+              value={form.repeatPassword}
+              onChangeText={(text) => handleChange("repeatPassword", text)}
               secureTextEntry={!showRepeatPassword}
               autoCapitalize="none"
-              onFocus={() => setRepeatFocused(true)}
-              onBlur={() => setRepeatFocused(false)}
             />
             <TouchableOpacity
               style={styles.eyeButton}
-              onPress={() => setShowRepeatPassword(!showRepeatPassword)}
+              onPress={() => setShowRepeatPassword((prev) => !prev)}
             >
               <Ionicons
                 name={showRepeatPassword ? "eye-outline" : "eye-off-outline"}
                 size={20}
-                color={PLACEHOLDER}
+                color={colors.secondaryText}
               />
             </TouchableOpacity>
-          </View>
+          </FormField>
         </View>
+        {error && (
+          <Text style={{ color: colors.error, textAlign: "center" }}>
+            {error}
+          </Text>
+        )}
+        {loading ? (
+          <ActivityIndicator color={colors.primary} />
+        ) : (
+          <Button
+            label="Registrarse"
+            variant="primary"
+            onPress={handleRegister}
+          />
+        )}
 
-        {/* Botón Registrarse */}
-        <TouchableOpacity
-          style={styles.button}
-          onPress={handleRegister}
-          activeOpacity={0.85}
-        >
-          <Text style={styles.buttonText}>Registrarse</Text>
-        </TouchableOpacity>
-
-        {/* Link a Login */}
-        <View style={styles.loginRow}>
-          <Text style={styles.loginLabel}>¿Ya tienes una cuenta?</Text>
+        <View style={styles.loginRedirect}>
+          <Text style={styles.loginLabel}>¿Ya tienes una cuenta? </Text>
           <TouchableOpacity onPress={() => router.push("/login")}>
             <Text style={styles.loginLink}>Inicia sesión</Text>
           </TouchableOpacity>
         </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
+    </View>
   );
 }

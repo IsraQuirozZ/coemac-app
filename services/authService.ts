@@ -1,4 +1,4 @@
-const API_URL = "http://192.168.1.137:3000/api";
+const API_URL = "http://192.168.1.16:3000/api"; // Cambiar dependiendo tu IP
 
 type LoginResponse = {
   token: string;
@@ -26,7 +26,12 @@ export const loginRequest = async (
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.message || "Login failed");
+    throw new Error(
+      errorData.message ||
+        errorData.errors?.[0] ||
+        errorData.error ||
+        "Login failed",
+    );
   }
 
   return response.json();
@@ -43,7 +48,14 @@ export const registerRequest = async (data: RegisterData) => {
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.message || "Register failed");
+    console.log(errorData);
+
+    throw new Error(
+      errorData.message ||
+        errorData.errors?.[0] ||
+        errorData.error ||
+        "Register failed",
+    );
   }
 
   return response.json();

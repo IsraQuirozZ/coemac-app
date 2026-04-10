@@ -7,54 +7,60 @@ type FormFieldProps = {
   label: string;
   icon: any;
   children: ReactNode;
-  date?: boolean;
   error?: string;
+  password?: boolean;
 };
 
 export default function FormField({
   label,
   icon,
   children,
-  date = false,
   error,
+  password = false,
 }: FormFieldProps) {
   const [isFocused, setIsFocused] = useState(false);
 
-  let childrenWithProps = children;
+  const childrenWithProps = React.Children.map(children, (child) => {
+    if (!React.isValidElement(child)) return child;
 
-  if (React.isValidElement(children)) {
-    childrenWithProps = React.cloneElement(children, {
-      onFocus: (e: any) => {
-        setIsFocused(true);
-        (children as React.ReactElement<any>).props.onFocus?.(e);
-      },
-      onBlur: (e: any) => {
-        setIsFocused(false);
-        (children as React.ReactElement<any>).props.onBlur?.(e);
-      },
-    } as any);
-  }
+    if (
+      child.type === "TextInput" ||
+      (child.props as any)?.onChangeText !== undefined
+    ) {
+      return React.cloneElement(child, {
+        onFocus: (e: any) => {
+          setIsFocused(true);
+          (child.props as any).onFocus?.(e);
+        },
+        onBlur: (e: any) => {
+          setIsFocused(false);
+          (child.props as any).onBlur?.(e);
+        },
+      } as any);
+    }
+
+    return child;
+  });
 
   return (
     <View style={styles.container}>
+      {/* HEADER */}
       <View style={styles.header}>
         <Ionicons name={icon} size={20} color={colors.primary} />
         <Text style={styles.label}>{label}</Text>
       </View>
 
-      {date ? (
-        <View>{children}</View>
-      ) : (
-        <View
-          style={[
-            styles.inputContainer,
-            error ? styles.inputError : isFocused && styles.inputFocused,
-          ]}
-        >
-          {childrenWithProps}
-        </View>
-      )}
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      {/* INPUT */}
+      <View
+        style={[
+          styles.inputContainer,
+          password && styles.passwordInputContainer,
+          error ? styles.inputError : isFocused && styles.inputFocused,
+        ]}
+      >
+        {childrenWithProps}
+      </View>
+      {error && <Text style={styles.errorText}>{error}</Text>}
     </View>
   );
 }
@@ -85,13 +91,17 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: colors.primary,
   },
-
   inputContainer: {
     borderWidth: 1,
     borderColor: "#E5E7EB",
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 12,
+  },
+  passwordInputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
   inputFocused: {
     borderColor: colors.light,

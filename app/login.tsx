@@ -1,189 +1,200 @@
+import Button from "@/components/ui/Button";
+import FormField from "@/components/ui/FormField";
 import { Ionicons } from "@expo/vector-icons";
-import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useAuth } from "../context/AuthContext";
 import { loginRequest } from "../services/authService";
-import { PLACEHOLDER, PRIMARY, styles } from "../styles/login.styles";
+import { globalStyles } from "../styles/globals.styles";
+import { styles } from "../styles/login.styles";
+import { colors } from "../theme/colors";
+
+// TYPES
+type FormType = {
+  email: string;
+  password: string;
+};
 
 export default function LoginScreen() {
   const router = useRouter();
   const { login } = useAuth();
+  const params = useLocalSearchParams<{ email?: string }>();
 
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [form, setForm] = useState<FormType>({
+    email: "",
+    password: "",
+  });
+
+  const [errors, setErrors] = useState<Partial<FormType>>({});
+  const [generalError, setGeneralError] = useState<string | null>(null);
 
   const [showPassword, setShowPassword] = useState(false);
-  const [emailFocused, setEmailFocused] = useState(false);
-  const [passwordFocused, setPasswordFocused] = useState(false);
-
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  // 🔐 Validación básica
-  const validateForm = () => {
-    if (!email || !password) {
-      setError("Todos los campos son obligatorios");
-      return false;
+  // Prefill email si viene de registro
+  useEffect(() => {
+    if (params.email) {
+      setForm((prev) => ({ ...prev, email: params.email as string }));
     }
+  }, [params.email]);
 
-    if (!email.includes("@")) {
-      setError("Email inválido");
-      return false;
-    }
+  // VALIDADORES
+  const validators = {
+    email: (value: string) => {
+      if (!value.trim()) return "El email es obligatorio";
+      if (value.length > 100) return "Máx 100 caracteres";
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return "Email inválido";
+      return "";
+    },
 
-    return true;
+    password: (value: string) => {
+      if (!value) return "La contraseña es obligatoria";
+      if (value.length < 6) return "Mínimo 6 caracteres";
+      return "";
+    },
   };
 
+  // HANDLE CHANGE
+  const handleChange = (field: keyof FormType, value: string) => {
+    setForm((prev) => ({ ...prev, [field]: value }));
+
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+    }
+  };
+
+  // VALIDATE
+  const validateForm = () => {
+    const newErrors: Partial<FormType> = {};
+
+    (Object.keys(form) as (keyof FormType)[]).forEach((field) => {
+      const error = validators[field](form[field]);
+      if (error) newErrors[field] = error;
+    });
+
+    setErrors(newErrors);
+
+    return Object.keys(newErrors).length === 0;
+  };
+
+  // SUBMIT
   const handleLogin = async () => {
-    setError(null);
+    if (loading) return; // evita doble click
+
+    setGeneralError(null);
 
     if (!validateForm()) return;
 
     try {
       setLoading(true);
 
-      const response = await loginRequest(email, password);
+      const response = await loginRequest(form.email.trim(), form.password);
 
       await login(response.token);
     } catch (err: any) {
-      setError(err.message || "Error al iniciar sesión");
+      if (err?.response?.data?.errors) {
+        setErrors(err.response.data.errors);
+      } else {
+        setGeneralError(err.message || "Error al iniciar sesión");
+      }
     } finally {
       setLoading(false);
     }
   };
 
-  const handleForgotPassword = () => {
-    console.log("Forgot password");
-  };
-
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-    >
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
+    <View style={{ flex: 1 }}>
+      <KeyboardAwareScrollView
+        contentContainerStyle={styles.formContainer}
         keyboardShouldPersistTaps="handled"
+        extraScrollHeight={30}
+        enableOnAndroid
+        keyboardDismissMode="on-drag"
         showsVerticalScrollIndicator={false}
       >
-        {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>¡Bienvenido!</Text>
-          <Text style={styles.subtitle}>Inicia sesión para continuar</Text>
-        </View>
-
-        {/* Error */}
-        {error && (
-          <Text style={{ color: "red", textAlign: "center", marginBottom: 10 }}>
-            {error}
+          <Text style={globalStyles.containerTitle}>¡Bienvenido de nuevo!</Text>
+          <Text style={globalStyles.containerDescription}>
+            Inicia sesión para continuar
           </Text>
-        )}
-
-        {/* Email */}
-        <View
-          style={[styles.fieldCard, emailFocused && styles.fieldCardActive]}
-        >
-          <View style={styles.labelRow}>
-            <Ionicons
-              name="mail-outline"
-              size={20}
-              color={PRIMARY}
-              style={styles.labelIcon}
-            />
-            <Text style={styles.label}>Email</Text>
-          </View>
-          <TextInput
-            style={styles.inputBox}
-            placeholder="correo@networking.com"
-            placeholderTextColor={PLACEHOLDER}
-            value={email}
-            onChangeText={setEmail}
-            keyboardType="email-address"
-            autoCapitalize="none"
-            autoCorrect={false}
-            onFocus={() => setEmailFocused(true)}
-            onBlur={() => setEmailFocused(false)}
-          />
         </View>
 
-        {/* Password */}
-        <View
-          style={[styles.fieldCard, passwordFocused && styles.fieldCardActive]}
-        >
-          <View style={styles.labelRow}>
-            <Ionicons
-              name="lock-closed-outline"
-              size={20}
-              color={PRIMARY}
-              style={styles.labelIcon}
+        <View style={globalStyles.formFields}>
+          {/* EMAIL */}
+          <FormField label="Email" icon="mail" error={errors.email}>
+            <TextInput
+              placeholder="tucorreo@networking.com"
+              placeholderTextColor={colors.secondaryText}
+              value={form.email}
+              onChangeText={(text) => handleChange("email", text)}
+              autoCapitalize="none"
+              keyboardType="email-address"
             />
-            <Text style={styles.label}>Password</Text>
-          </View>
-          <View style={styles.inputPasswordWrapper}>
+          </FormField>
+
+          {/* PASSWORD */}
+          <FormField
+            label="Contraseña"
+            icon="lock-closed"
+            error={errors.password}
+            password
+          >
             <TextInput
               style={styles.inputPassword}
-              placeholder="**********"
-              placeholderTextColor={PLACEHOLDER}
-              value={password}
-              onChangeText={setPassword}
+              placeholder="********"
+              placeholderTextColor={colors.secondaryText}
+              value={form.password}
+              onChangeText={(text) => handleChange("password", text)}
               secureTextEntry={!showPassword}
               autoCapitalize="none"
-              onFocus={() => setPasswordFocused(true)}
-              onBlur={() => setPasswordFocused(false)}
             />
             <TouchableOpacity
               style={styles.eyeButton}
-              onPress={() => setShowPassword(!showPassword)}
+              onPress={() => setShowPassword((prev) => !prev)}
             >
               <Ionicons
                 name={showPassword ? "eye-outline" : "eye-off-outline"}
                 size={20}
-                color={PLACEHOLDER}
+                color={colors.secondaryText}
               />
             </TouchableOpacity>
-          </View>
+          </FormField>
         </View>
 
-        {/* Forgot password */}
-        <TouchableOpacity
-          onPress={handleForgotPassword}
-          style={styles.forgotContainer}
-        >
-          <Text style={styles.forgotText}>¿Olvidaste tu contraseña?</Text>
-        </TouchableOpacity>
+        {/* ERROR GENERAL */}
+        {generalError && (
+          <Text style={{ color: colors.error, textAlign: "center" }}>
+            {generalError}
+          </Text>
+        )}
 
-        {/* Botón */}
-        <TouchableOpacity
-          style={styles.button}
-          onPress={handleLogin}
-          activeOpacity={0.85}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.buttonText}>Login</Text>
-          )}
-        </TouchableOpacity>
+        {/* BUTTON */}
+        {loading ? (
+          <ActivityIndicator color={colors.primary} />
+        ) : (
+          <Button
+            label="Iniciar sesión"
+            variant="primary"
+            onPress={handleLogin}
+          />
+        )}
 
-        {/* Register */}
-        <View style={styles.registerRow}>
-          <Text style={styles.registerLabel}>¿Nuevo por aquí?</Text>
+        {/* REDIRECT */}
+        <View style={styles.registerRedirect}>
+          <Text style={styles.registerLabel}>¿No tienes una cuenta? </Text>
           <TouchableOpacity onPress={() => router.push("/register")}>
             <Text style={styles.registerLink}>Regístrate</Text>
           </TouchableOpacity>
         </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
+    </View>
   );
 }
