@@ -1,6 +1,5 @@
 import Button from "@/components/ui/Button";
 import FormField from "@/components/ui/FormField";
-import { Ionicons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -36,7 +35,6 @@ export default function LoginScreen() {
   const [errors, setErrors] = useState<Partial<FormType>>({});
   const [generalError, setGeneralError] = useState<string | null>(null);
 
-  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // Prefill email si viene de registro
@@ -100,11 +98,7 @@ export default function LoginScreen() {
 
       await login(response.token);
     } catch (err: any) {
-      if (err?.response?.data?.errors) {
-        setErrors(err.response.data.errors);
-      } else {
-        setGeneralError(err.message || "Error al iniciar sesión");
-      }
+      setGeneralError(err.message || "Error al iniciar sesión");
     } finally {
       setLoading(false);
     }
@@ -145,7 +139,7 @@ export default function LoginScreen() {
             label="Contraseña"
             icon="lock-closed"
             error={errors.password}
-            password
+            type="password"
           >
             <TextInput
               style={styles.inputPassword}
@@ -153,19 +147,11 @@ export default function LoginScreen() {
               placeholderTextColor={colors.secondaryText}
               value={form.password}
               onChangeText={(text) => handleChange("password", text)}
-              secureTextEntry={!showPassword}
               autoCapitalize="none"
+              importantForAutofill="no"
+              autoCorrect={false}
+              autoComplete="off"
             />
-            <TouchableOpacity
-              style={styles.eyeButton}
-              onPress={() => setShowPassword((prev) => !prev)}
-            >
-              <Ionicons
-                name={showPassword ? "eye-outline" : "eye-off-outline"}
-                size={20}
-                color={colors.secondaryText}
-              />
-            </TouchableOpacity>
           </FormField>
         </View>
 

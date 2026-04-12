@@ -4,8 +4,8 @@ import Button from "@/components/ui/Button";
 import FilterButton from "@/components/ui/FilterButton";
 import { globalStyles } from "@/styles/globals.styles";
 import { colors } from "@/theme/colors";
-import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useState } from "react";
 import { ActivityIndicator, ScrollView, Text, View } from "react-native";
 import { getReferencias } from "../../../services/referenciaService";
 import { referenciasStyles as styles } from "../../../styles/referencias.styles";
@@ -20,31 +20,31 @@ export default function Referencias() {
   const [referencias, setReferencias] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setLoading(true);
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const direction = direccion === "Recibidas" ? "recibidas" : "enviadas";
 
-        const direction = direccion === "Recibidas" ? "recibidas" : "enviadas";
+      const data = await getReferencias({
+        direction,
+        tipo,
+        page: 1,
+        limit: 10,
+      });
 
-        const data = await getReferencias({
-          direction,
-          tipo,
-          page: 1,
-          limit: 10,
-        });
+      setReferencias(data.data);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-        setReferencias(data.data);
-        console.log("REFERENCIAS:", data);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [direccion, tipo]);
+  useFocusEffect(
+    useCallback(() => {
+      fetchData();
+    }, [direccion, tipo]),
+  );
 
   const mapReferenciaToCard = (ref: any) => {
     const isRecibida = direccion === "Recibidas";

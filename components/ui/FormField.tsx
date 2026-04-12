@@ -1,6 +1,6 @@
 import { Ionicons } from "@expo/vector-icons";
 import React, { ReactNode, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { colors } from "../../theme/colors";
 
 type FormFieldProps = {
@@ -8,7 +8,7 @@ type FormFieldProps = {
   icon: any;
   children: ReactNode;
   error?: string;
-  password?: boolean;
+  type?: "text" | "password";
 };
 
 export default function FormField({
@@ -16,17 +16,19 @@ export default function FormField({
   icon,
   children,
   error,
-  password = false,
+  type = "text",
 }: FormFieldProps) {
   const [isFocused, setIsFocused] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+
+  const isPassword = type === "password";
 
   const childrenWithProps = React.Children.map(children, (child) => {
     if (!React.isValidElement(child)) return child;
 
-    if (
-      child.type === "TextInput" ||
-      (child.props as any)?.onChangeText !== undefined
-    ) {
+    const isInput = (child.props as any)?.onChangeText !== undefined;
+
+    if (isInput) {
       return React.cloneElement(child, {
         onFocus: (e: any) => {
           setIsFocused(true);
@@ -36,6 +38,12 @@ export default function FormField({
           setIsFocused(false);
           (child.props as any).onBlur?.(e);
         },
+        ...(isPassword && {
+          secureTextEntry: !showPassword,
+          textContentType: "oneTimeCode",
+          autoComplete: "off",
+          importantForAutofill: "no",
+        }),
       } as any);
     }
 
@@ -44,22 +52,34 @@ export default function FormField({
 
   return (
     <View style={styles.container}>
-      {/* HEADER */}
       <View style={styles.header}>
         <Ionicons name={icon} size={20} color={colors.primary} />
         <Text style={styles.label}>{label}</Text>
       </View>
 
-      {/* INPUT */}
       <View
         style={[
           styles.inputContainer,
-          password && styles.passwordInputContainer,
+          isPassword && styles.passwordInputContainer,
           error ? styles.inputError : isFocused && styles.inputFocused,
         ]}
       >
         {childrenWithProps}
+
+        {isPassword && (
+          <TouchableOpacity
+            onPress={() => setShowPassword((prev) => !prev)}
+            activeOpacity={0.7}
+          >
+            <Ionicons
+              name={showPassword ? "eye-outline" : "eye-off-outline"}
+              size={20}
+              color={colors.secondaryText}
+            />
+          </TouchableOpacity>
+        )}
       </View>
+
       {error && <Text style={styles.errorText}>{error}</Text>}
     </View>
   );
@@ -91,6 +111,7 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     color: colors.primary,
   },
+
   inputContainer: {
     borderWidth: 1,
     borderColor: "#E5E7EB",
@@ -98,18 +119,21 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 12,
   },
+
   passwordInputContainer: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
+    gap: 10,
   },
+
   inputFocused: {
     borderColor: colors.light,
   },
-  dateInputContainer: {},
+
   inputError: {
     borderColor: colors.error,
   },
+
   errorText: {
     color: colors.error,
     fontSize: 12,

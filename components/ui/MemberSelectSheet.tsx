@@ -7,10 +7,16 @@ import BottomSheet, {
 import { forwardRef, useMemo } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
+type MemberOption = {
+  id: string;
+  name: string;
+  company: string;
+};
+
 type Props = {
-  options: { name: string; company: string }[];
-  selected: { name: string; company: string } | null;
-  onSelect: (value: { name: string; company: string }) => void;
+  options: MemberOption[];
+  selected: MemberOption | null;
+  onSelect: (value: MemberOption) => void;
   onOpenChange?: (open: boolean) => void;
   title?: string;
 };

@@ -14,3 +14,23 @@ export const getReferencias = async (filters = {}) => {
 
   return res.json();
 };
+
+export const crearReferencia = async (data: any) => {
+  const res = await apiFetch("/referencias", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json();
+    console.log("Error response:", errorData);
+    throw new Error(
+      errorData.error || errorData.errors || "Error creating referencia",
+    );
+  }
+
+  return res.json();
+};

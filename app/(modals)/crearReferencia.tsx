@@ -10,12 +10,24 @@ import { Ionicons } from "@expo/vector-icons";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { useNavigation, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useToast } from "../../hooks/useToast";
+import { crearReferencia } from "../../services/referenciaService";
+import { getUsuarios } from "../../services/usuarioService";
 
 export default function CrearReferencia() {
+  const [submitting, setSubmitting] = useState(false);
+
   // MODAL MIEMBROS
+  const [members, setMembers] = useState<any[]>([]);
+  const [selectedMember, setSelectedMember] = useState<any | null>(null);
   const memberSheetRef = useRef<BottomSheet>(null);
   const dateSheetRef = useRef<BottomSheet>(null);
 
@@ -34,27 +46,33 @@ export default function CrearReferencia() {
 
   const { showToast } = useToast();
   const [tipo, setTipo] = useState<"interna" | "externa">("interna");
-  const [selectedMember, setSelectedMember] = useState<string | null>(null);
   const router = useRouter();
-  const memberOptions = [
-    { name: "Ana Martínez", company: "Tech Solutions" },
-    { name: "Carlos Pérez", company: "Innovate Co" },
-    { name: "Luisa Gómez", company: "Digital Partners" },
-    { name: "Daniel Rivera", company: "Global Ventures" },
-    { name: "Sofía Torres", company: "Future Systems" },
-    { name: "Miguel Fernández", company: "Smart Business" },
-    { name: "Laura Sánchez", company: "NextGen Inc" },
-    { name: "Javier Ruiz", company: "Prime Solutions" },
-    { name: "Isabel Díaz", company: "Apex Consulting" },
-    { name: "Fernando López", company: "Elite Group" },
-  ];
 
-  // Simulación de envío de formulario
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const data = await getUsuarios();
+        setMembers(data);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    fetchUsers();
+  }, []);
+
+  const memberOptions = members.map((m) => ({
+    id: m.id,
+    name: `${m.nombre} ${m.apellido}`,
+    company: m.empresa || "Sin empresa",
+  }));
+
   const [form, setForm] = useState({
     miembro: null as string | null,
     nombreContacto: "",
     emailContacto: "",
     telefonoContacto: "",
+    cargoContacto: "",
     fechaReferencia: date,
     descripcionReferencia: "",
     tipoReferencia: tipo,
@@ -66,6 +84,7 @@ export default function CrearReferencia() {
     nombreContacto: "",
     emailContacto: "",
     telefonoContacto: "",
+    cargoContacto: "",
     fechaReferencia: "",
     descripcionReferencia: "",
     tipoReferencia: "",
@@ -77,6 +96,7 @@ export default function CrearReferencia() {
     const nombre = form.nombreContacto.trim();
     const email = form.emailContacto.trim();
     const telefono = form.telefonoContacto.trim();
+    const cargo = form.cargoContacto.trim();
     const descripcion = form.descripcionReferencia.trim();
     const fechaReferencia = form.fechaReferencia;
     const today = new Date();
@@ -95,26 +115,31 @@ export default function CrearReferencia() {
     if (!nombre) {
       newErrors.nombreContacto = "El nombre del contacto es requerido.";
     } else if (nombre.length < 3) {
-      newErrors.nombreContacto =
-        "El nombre del contacto debe tener al menos 3 caracteres.";
+      newErrors.nombreContacto = "Debe tener al menos 3 caracteres.";
     } else if (!nombreRegex.test(nombre)) {
-      newErrors.nombreContacto =
-        "El nombre del contacto solo puede contener letras y espacios.";
+      newErrors.nombreContacto = "Solo puede contener letras y espacios.";
     }
 
-    // EMAIL
-    if (!email) {
-      newErrors.emailContacto = "El email del contacto es requerido.";
-    } else if (!emailRegex.test(email)) {
-      newErrors.emailContacto = "El email del contacto no es válido.";
+    // EMAIL / PHONE (al menos uno requerido)
+    if (!email && !telefono) {
+      newErrors.emailContacto = "Debe ingresar email o teléfono.";
+      newErrors.telefonoContacto = "Debe ingresar email o teléfono.";
+    } else {
+      if (email && !emailRegex.test(email)) {
+        newErrors.emailContacto = "El email del contacto no es válido.";
+      }
+
+      if (telefono && !phoneRegex.test(telefono)) {
+        newErrors.telefonoContacto = "Debe contener entre 9 y 12 dígitos.";
+      }
     }
 
-    // PHONE
-    if (!telefono) {
-      newErrors.telefonoContacto = "El teléfono del contacto es requerido.";
-    } else if (!phoneRegex.test(telefono)) {
-      newErrors.telefonoContacto =
-        "El teléfono del contacto debe contener solo números y tener entre 9 y 12 dígitos.";
+    // CARGO (OPCIONAL)
+    if (cargo && (cargo.length < 3 || cargo.length > 50)) {
+      newErrors.cargoContacto =
+        "Debe tener entre 3 y 50 caracteres si se proporciona.";
+    } else if (cargo && !nombreRegex.test(cargo)) {
+      newErrors.cargoContacto = "Solo puede contener letras y espacios.";
     }
 
     // FECHA
@@ -128,7 +153,7 @@ export default function CrearReferencia() {
     // DESCRIPCION
     if (descripcion && !descripcionRegex.test(descripcion)) {
       newErrors.descripcionReferencia =
-        "La descripción debe tener al menos 10 caracteres si se proporciona.";
+        "Debe tener al menos 10 caracteres si se proporciona.";
     }
 
     // TIPO DE REFERENCIA
@@ -147,17 +172,39 @@ export default function CrearReferencia() {
     }
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const isValid = validateForm();
 
     if (!isValid) {
       setIsError(true);
       return;
     }
-    console.log("Formulario válido", form);
-    showToast("Referencia registrada", "success");
 
-    router.back();
+    try {
+      setSubmitting(true);
+
+      const payload: any = {
+        receptorId: form.miembro,
+        nombreContacto: form.nombreContacto,
+        telefonoContacto: form.telefonoContacto || undefined,
+        tipo: form.tipoReferencia === "interna" ? "INTERNA" : "EXTERNA",
+      };
+
+      if (form.emailContacto) payload.emailContacto = form.emailContacto;
+      if (form.cargoContacto) payload.cargoContacto = form.cargoContacto;
+      if (form.descripcionReferencia)
+        payload.descripcion = form.descripcionReferencia;
+      if (form.fechaReferencia) payload.fechaReferencia = form.fechaReferencia;
+
+      await crearReferencia(payload);
+
+      showToast("Referencia registrada", "success");
+      router.back();
+    } catch (error: any) {
+      showToast(error.message || "Error al crear la referencia", "error");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -197,7 +244,9 @@ export default function CrearReferencia() {
                       : colors.secondaryText,
                   }}
                 >
-                  {selectedMember || "Selecciona un miembro"}
+                  {selectedMember
+                    ? selectedMember.name
+                    : "Selecciona un miembro"}
                 </Text>
                 <Ionicons
                   name="chevron-down"
@@ -258,6 +307,23 @@ export default function CrearReferencia() {
                 clearError("telefonoContacto");
               }}
               keyboardType="phone-pad"
+            />
+          </FormField>
+
+          {/* CARGO DEL CONTACTO */}
+          <FormField
+            label="Cargo del Contacto"
+            icon="briefcase"
+            error={errors.cargoContacto}
+          >
+            <TextInput
+              placeholderTextColor={colors.secondaryText}
+              placeholder="Cargo del contacto"
+              value={form.cargoContacto}
+              onChangeText={(text) => {
+                setForm({ ...form, cargoContacto: text });
+                clearError("cargoContacto");
+              }}
             />
           </FormField>
 
@@ -342,24 +408,25 @@ export default function CrearReferencia() {
             Por favor, solucione los errores antes de enviar.
           </Text>
         )}
-        <Button
-          label="Crear Referencia"
-          variant="primary"
-          onPress={handleSubmit}
-        />
+        {submitting ? (
+          <ActivityIndicator color={colors.primary} />
+        ) : (
+          <Button
+            label={submitting ? "Creando..." : "Crear Referencia"}
+            variant="primary"
+            onPress={handleSubmit}
+            disabled={submitting}
+          />
+        )}
       </KeyboardAwareScrollView>
       {/* BOTTOM SHEET DE MIEMBROS */}
       <MemberSelectSheet
         ref={memberSheetRef}
         options={memberOptions}
-        selected={
-          selectedMember
-            ? memberOptions.find((m) => m.name === selectedMember) || null
-            : null
-        }
+        selected={selectedMember}
         onSelect={(member) => {
-          setSelectedMember(member.name);
-          setForm((prev) => ({ ...prev, miembro: member.name }));
+          setSelectedMember(member);
+          setForm((prev) => ({ ...prev, miembro: member.id }));
           clearError("miembro");
         }}
         onOpenChange={(open) => setIsAnySheetOpen(open)}
