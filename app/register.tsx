@@ -4,7 +4,6 @@ import { useToast } from "@/hooks/useToast";
 import { registerRequest } from "@/services/authService";
 import { globalStyles } from "@/styles/globals.styles";
 import { colors } from "@/theme/colors";
-import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -44,9 +43,6 @@ export default function RegisterScreen() {
   const [form, setForm] = useState<FormType>(initialForm);
   const [errors, setErrors] = useState<Partial<FormType>>({});
   const [error, setError] = useState<string | null>(null);
-
-  const [showPassword, setShowPassword] = useState(false);
-  const [showRepeatPassword, setShowRepeatPassword] = useState(false);
 
   const [loading, setLoading] = useState(false);
 
@@ -219,7 +215,7 @@ export default function RegisterScreen() {
             label="Contraseña"
             icon="lock-closed"
             error={errors.password}
-            password
+            type="password"
           >
             <TextInput
               style={styles.inputPassword}
@@ -227,19 +223,8 @@ export default function RegisterScreen() {
               placeholderTextColor={colors.secondaryText}
               value={form.password}
               onChangeText={(text) => handleChange("password", text)}
-              secureTextEntry={!showPassword}
               autoCapitalize="none"
             />
-            <TouchableOpacity
-              style={styles.eyeButton}
-              onPress={() => setShowPassword((prev) => !prev)}
-            >
-              <Ionicons
-                name={showPassword ? "eye-outline" : "eye-off-outline"}
-                size={20}
-                color={colors.secondaryText}
-              />
-            </TouchableOpacity>
           </FormField>
 
           {/* REPEAT PASSWORD */}
@@ -247,7 +232,7 @@ export default function RegisterScreen() {
             label="Repetir Contraseña"
             icon="lock-closed"
             error={errors.repeatPassword}
-            password
+            type="password"
           >
             <TextInput
               style={styles.inputPassword}
@@ -255,19 +240,8 @@ export default function RegisterScreen() {
               placeholderTextColor={colors.secondaryText}
               value={form.repeatPassword}
               onChangeText={(text) => handleChange("repeatPassword", text)}
-              secureTextEntry={!showRepeatPassword}
               autoCapitalize="none"
             />
-            <TouchableOpacity
-              style={styles.eyeButton}
-              onPress={() => setShowRepeatPassword((prev) => !prev)}
-            >
-              <Ionicons
-                name={showRepeatPassword ? "eye-outline" : "eye-off-outline"}
-                size={20}
-                color={colors.secondaryText}
-              />
-            </TouchableOpacity>
           </FormField>
         </View>
         {error && (

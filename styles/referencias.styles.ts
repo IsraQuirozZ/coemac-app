@@ -15,4 +15,10 @@ export const referenciasStyles = StyleSheet.create({
     right: 24,
     zIndex: 100,
   },
+  noDataText: {
+    textAlign: "center",
+    marginTop: 50,
+    fontSize: 16,
+    color: "#666",
+  },
 });
