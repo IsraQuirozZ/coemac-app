@@ -2,18 +2,32 @@ import { useRouter } from "expo-router";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { Path, Svg } from "react-native-svg";
+import { useAuth } from "../../context/AuthContext";
 import { colors } from "../../theme/colors";
 
 import { useWindowDimensions } from "react-native";
 
 type HeaderProps = {
   title: string;
-  initials?: string;
 };
 
-const Header: React.FC<HeaderProps> = ({ title, initials = "IQ" }) => {
+const Header: React.FC<HeaderProps> = ({ title }) => {
   const { width } = useWindowDimensions();
   const router = useRouter();
+  const { user } = useAuth();
+
+  const getInitials = (nombre?: string, apellido?: string) => {
+    if (!nombre) return "";
+
+    const first = nombre.trim().charAt(0).toUpperCase();
+
+    const second = apellido ? apellido.trim().charAt(0).toUpperCase() : "";
+
+    return first + second;
+  };
+
+  const initials = getInitials(user?.nombre, user?.apellido);
+
   return (
     <View style={styles.header__container}>
       <Svg

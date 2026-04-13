@@ -1,5 +1,5 @@
 import { setUnauthorizedHandler } from "@/services/apiClient";
-import { decodeToken } from "@/utils/decodeToken";
+import { getMe } from "@/services/usuarioService";
 import {
   createContext,
   ReactNode,
@@ -9,11 +9,15 @@ import {
 } from "react";
 import { getToken, removeToken, saveToken } from "../storage/authStorage";
 
-// Tipo de usuario (ajustado a tu backend JWT)
 type User = {
-  userId: string;
+  id: string;
   username: string;
-  rol: string;
+  nombre: string;
+  apellido: string;
+  empresa?: string;
+  email: string;
+  telefono?: string;
+  fechaNacimiento?: string;
 };
 
 // Tipo del contexto
@@ -43,15 +47,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (storedToken) {
           setTokenState(storedToken);
 
-          const decoded = decodeToken(storedToken);
-          setUser({
-            userId: decoded.userId,
-            username: decoded.username,
-            rol: decoded.rol,
-          });
+          // const decoded = decodeToken(storedToken);
+          // setUser({
+          //   userId: decoded.userId,
+          //   username: decoded.username,
+          //   rol: decoded.rol,
+          // });
+
+          const user = await getMe();
+          setUser(user);
         }
       } catch (error) {
         console.error("Error loading session", error);
+        await logout();
       } finally {
         setLoading(false);
       }
@@ -66,12 +74,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       await saveToken(newToken);
       setTokenState(newToken);
 
-      const decoded = decodeToken(newToken);
-      setUser({
-        userId: decoded.userId,
-        username: decoded.username,
-        rol: decoded.rol,
-      });
+      // const decoded = decodeToken(newToken);
+      // setUser({
+      //   userId: decoded.userId,
+      //   username: decoded.username,
+      //   rol: decoded.rol,
+      // });
+      const user = await getMe();
+      if (!user) throw new Error("User not found");
+
+      setUser(user);
     } catch (error) {
       console.error("Login error", error);
       throw error;

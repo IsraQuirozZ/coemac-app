@@ -125,6 +125,7 @@ export default function Referencias() {
           <View style={styles.referenceCards}>
             {referencias.map((ref) => {
               const mappedRef = mapReferenciaToCard(ref);
+              const dateToShow = ref.fechaReferencia || ref.createdAt;
 
               return (
                 <ReferenceCard
@@ -136,7 +137,7 @@ export default function Referencias() {
                   member={mappedRef.member}
                   memberLabel={mappedRef.label}
                   referenceType={ref.tipo}
-                  date={formatDate(ref.createdAt)}
+                  date={formatDate(dateToShow)}
                   viewed={false}
                 />
               );
