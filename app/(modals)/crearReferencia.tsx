@@ -40,10 +40,7 @@ export default function CrearReferencia() {
       gestureEnabled: !isAnySheetOpen,
     });
   }, [isAnySheetOpen]);
-
-  // MODAL DATEPICKER
-  const [date, setDate] = useState(new Date());
-
+  ("");
   const { showToast } = useToast();
   const [tipo, setTipo] = useState<"interna" | "externa">("interna");
   const router = useRouter();
@@ -73,7 +70,7 @@ export default function CrearReferencia() {
     emailContacto: "",
     telefonoContacto: "",
     cargoContacto: "",
-    fechaReferencia: date,
+    fechaReferencia: new Date(),
     descripcionReferencia: "",
     tipoReferencia: tipo,
   });
@@ -187,6 +184,9 @@ export default function CrearReferencia() {
         receptorId: form.miembro,
         nombreContacto: form.nombreContacto,
         telefonoContacto: form.telefonoContacto || undefined,
+        fechaReferencia: form.fechaReferencia
+          ? form.fechaReferencia.toISOString()
+          : undefined,
         tipo: form.tipoReferencia === "interna" ? "INTERNA" : "EXTERNA",
       };
 
@@ -194,7 +194,6 @@ export default function CrearReferencia() {
       if (form.cargoContacto) payload.cargoContacto = form.cargoContacto;
       if (form.descripcionReferencia)
         payload.descripcion = form.descripcionReferencia;
-      if (form.fechaReferencia) payload.fechaReferencia = form.fechaReferencia;
 
       await crearReferencia(payload);
 
@@ -339,7 +338,7 @@ export default function CrearReferencia() {
               }}
             >
               <Text>
-                {date.toLocaleDateString("es-ES", {
+                {form.fechaReferencia.toLocaleDateString("es-ES", {
                   day: "numeric",
                   month: "short",
                   year: "numeric",
@@ -435,9 +434,8 @@ export default function CrearReferencia() {
       {/* BOTTOM SHEET DE DATEPICKER */}
       <DatePickerSheet
         ref={dateSheetRef}
-        value={date}
+        value={form.fechaReferencia}
         onConfirm={(selectedDate) => {
-          setDate(selectedDate);
           setForm((prev) => ({
             ...prev,
             fechaReferencia: selectedDate,

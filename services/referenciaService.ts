@@ -5,32 +5,20 @@ export const getReferencias = async (filters = {}) => {
 
   const url = query ? `/referencias?${query}` : "/referencias";
 
-  const res = await apiFetch(url);
+  return apiFetch(url);
+};
 
-  if (!res.ok) {
-    const errorData = await res.json();
-    throw new Error(errorData.message || "Error fetching referencias");
-  }
-
-  return res.json();
+export const getReferenciaById = async (id: string) => {
+  return apiFetch(`/referencias/${id}`);
 };
 
 export const crearReferencia = async (data: any) => {
-  const res = await apiFetch("/referencias", {
+  return apiFetch("/referencias", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify(data),
   });
+};
 
-  if (!res.ok) {
-    const errorData = await res.json();
-    console.log("Error response:", errorData);
-    throw new Error(
-      errorData.error || errorData.errors || "Error creating referencia",
-    );
-  }
-
-  return res.json();
+export const markReferenciaAsViewed = async (id: string) => {
+  return apiFetch(`/referencias/${id}/view`);
 };

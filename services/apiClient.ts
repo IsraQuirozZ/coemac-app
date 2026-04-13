@@ -20,10 +20,23 @@ export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
     },
   });
 
+  let data;
+  try {
+    data = await res.json();
+  } catch (error) {
+    data = null;
+  }
+
   if (res.status === 401) {
     onUnauthorized?.();
     throw new Error("Unauthorized");
   }
 
-  return res;
+  if (!res.ok) {
+    throw new Error(
+      data?.errors?.[0] || data?.message || "Something went wrong",
+    );
+  }
+
+  return data;
 };
