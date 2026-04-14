@@ -8,7 +8,7 @@ import { globalStyles } from "@/styles/globals.styles";
 import { colors } from "@/theme/colors";
 import { Ionicons } from "@expo/vector-icons";
 import BottomSheet from "@gorhom/bottom-sheet";
-import { useNavigation, useRouter } from "expo-router";
+import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -19,32 +19,52 @@ import {
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useToast } from "../../hooks/useToast";
-import { crearReferencia } from "../../services/referenciaService";
+import {
+  crearReferencia,
+  getReferenciaById,
+  updateReferencia,
+} from "../../services/referenciaService";
 import { getUsuarios } from "../../services/usuarioService";
 
 export default function CrearReferencia() {
   const [submitting, setSubmitting] = useState(false);
 
+  // CREAR / EDITAR
+  const { id } = useLocalSearchParams();
+  const isEditMode = !!id;
+
   // MODAL MIEMBROS
   const [members, setMembers] = useState<any[]>([]);
   const [selectedMember, setSelectedMember] = useState<any | null>(null);
+
   const memberSheetRef = useRef<BottomSheet>(null);
   const dateSheetRef = useRef<BottomSheet>(null);
 
   const [isAnySheetOpen, setIsAnySheetOpen] = useState(false);
   const navigation = useNavigation();
 
-  // Cuando Modal (SelectMember, Datepicker) esté abierto, deshabilitar el gesto de swipe para cerrar el modal padre (crear referencia)
   useEffect(() => {
     navigation.setOptions({
       gestureEnabled: !isAnySheetOpen,
     });
   }, [isAnySheetOpen]);
-  ("");
+
   const { showToast } = useToast();
-  const [tipo, setTipo] = useState<"interna" | "externa">("interna");
   const router = useRouter();
 
+  // FORM
+  const [form, setForm] = useState({
+    miembro: null as string | null,
+    nombreContacto: "",
+    emailContacto: "",
+    telefonoContacto: "",
+    cargoContacto: "",
+    fechaReferencia: new Date(),
+    descripcionReferencia: "",
+    tipoReferencia: "interna",
+  });
+
+  // CARGAR MIEMBROS
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -64,17 +84,50 @@ export default function CrearReferencia() {
     company: m.empresa || "Sin empresa",
   }));
 
-  const [form, setForm] = useState({
-    miembro: null as string | null,
-    nombreContacto: "",
-    emailContacto: "",
-    telefonoContacto: "",
-    cargoContacto: "",
-    fechaReferencia: new Date(),
-    descripcionReferencia: "",
-    tipoReferencia: tipo,
-  });
+  // LOAD REFERENCIA (EDIT MODE)
+  const loadReferencia = async () => {
+    try {
+      const data = await getReferenciaById(id as string);
 
+      setForm({
+        miembro: data.receptorId || null,
+        nombreContacto: data.nombreContacto || "",
+        emailContacto: data.emailContacto || "",
+        telefonoContacto: data.telefonoContacto || "",
+        cargoContacto: data.cargoContacto || "",
+        fechaReferencia: data.fechaReferencia
+          ? new Date(data.fechaReferencia)
+          : new Date(),
+        descripcionReferencia: data.descripcion || "",
+        tipoReferencia: data.tipo === "INTERNA" ? "interna" : "externa",
+      });
+    } catch (error) {
+      console.log("Error loading Referencia", error);
+    }
+  };
+
+  useEffect(() => {
+    if (!isEditMode) return;
+
+    loadReferencia();
+  }, [id]);
+
+  // SINCRONIZAR MIEMBRO
+  useEffect(() => {
+    if (!members.length || !form.miembro) return;
+
+    const member = members.find((m) => m.id === form.miembro);
+
+    if (member) {
+      setSelectedMember({
+        id: member.id,
+        name: `${member.nombre} ${member.apellido}`,
+        company: member.empresa || "Sin empresa",
+      });
+    }
+  }, [members, form.miembro]);
+
+  // VALIDACIONES
   const [isError, setIsError] = useState(false);
   const [errors, setErrors] = useState({
     miembro: "",
@@ -169,6 +222,7 @@ export default function CrearReferencia() {
     }
   };
 
+  // SUBMIT
   const handleSubmit = async () => {
     const isValid = validateForm();
 
@@ -195,12 +249,23 @@ export default function CrearReferencia() {
       if (form.descripcionReferencia)
         payload.descripcion = form.descripcionReferencia;
 
-      await crearReferencia(payload);
+      if (isEditMode) {
+        await updateReferencia(id as string, payload);
+        showToast("Referencia actualizada", "success");
+      } else {
+        await crearReferencia(payload);
+        showToast("Referencia registrada", "success");
+      }
 
-      showToast("Referencia registrada", "success");
       router.back();
     } catch (error: any) {
-      showToast(error.message || "Error al crear la referencia", "error");
+      showToast(
+        error.message ||
+          (isEditMode
+            ? "Error al actualizar la referencia"
+            : "Error al crear la referencia"),
+        "error",
+      );
     } finally {
       setSubmitting(false);
     }
@@ -377,12 +442,13 @@ export default function CrearReferencia() {
               <TouchableOpacity
                 style={styles.radioItem}
                 onPress={() => {
-                  setTipo("interna");
                   setForm((prev) => ({ ...prev, tipoReferencia: "interna" }));
                 }}
               >
                 <View style={styles.radioOuter}>
-                  {tipo === "interna" && <View style={styles.radioInner} />}
+                  {form.tipoReferencia === "interna" && (
+                    <View style={styles.radioInner} />
+                  )}
                 </View>
                 <Text>Interna</Text>
               </TouchableOpacity>
@@ -390,12 +456,13 @@ export default function CrearReferencia() {
               <TouchableOpacity
                 style={styles.radioItem}
                 onPress={() => {
-                  setTipo("externa");
                   setForm((prev) => ({ ...prev, tipoReferencia: "externa" }));
                 }}
               >
                 <View style={styles.radioOuter}>
-                  {tipo === "externa" && <View style={styles.radioInner} />}
+                  {form.tipoReferencia === "externa" && (
+                    <View style={styles.radioInner} />
+                  )}
                 </View>
                 <Text>Externa</Text>
               </TouchableOpacity>
@@ -411,7 +478,15 @@ export default function CrearReferencia() {
           <ActivityIndicator color={colors.primary} />
         ) : (
           <Button
-            label={submitting ? "Creando..." : "Crear Referencia"}
+            label={
+              submitting
+                ? isEditMode
+                  ? "Actualizando..."
+                  : "Creando..."
+                : isEditMode
+                  ? "Actualizar Referencia"
+                  : "Crear Referencia"
+            }
             variant="primary"
             onPress={handleSubmit}
             disabled={submitting}

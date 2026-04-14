@@ -95,7 +95,7 @@ export default function Reuniones() {
         <View style={globalStyles.containerText}>
           <Text style={globalStyles.containerTitle}>Tus Reuniones</Text>
           <Text style={globalStyles.containerDescription}>
-            Registro de tus reuniones.
+            Registro de tus reuniones propuestas.
           </Text>
         </View>
 
