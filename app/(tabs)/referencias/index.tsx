@@ -6,7 +6,13 @@ import { globalStyles } from "@/styles/globals.styles";
 import { colors } from "@/theme/colors";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, ScrollView, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { getReferencias } from "../../../services/referenciaService";
 import { referenciasStyles as styles } from "../../../styles/referencias.styles";
 
@@ -127,19 +133,26 @@ export default function Referencias() {
               const mappedRef = mapReferenciaToCard(ref);
               const dateToShow = ref.fechaReferencia || ref.createdAt;
 
+              const isRecibida = direccion === "Recibidas";
+              const isViewed = !!ref.viewedAt;
+
               return (
-                <ReferenceCard
+                <TouchableOpacity
                   key={ref.id}
-                  referrer={ref.nombreContacto}
-                  position={ref?.cargoContacto || "No especificado"}
-                  number={ref?.telefonoContacto || "No especificado"}
-                  email={ref?.emailContacto || "No especificado"}
-                  member={mappedRef.member}
-                  memberLabel={mappedRef.label}
-                  referenceType={ref.tipo}
-                  date={formatDate(dateToShow)}
-                  viewed={false}
-                />
+                  onPress={() => router.push(`/(modals)/referencias/${ref.id}`)}
+                >
+                  <ReferenceCard
+                    referrer={ref.nombreContacto}
+                    position={ref?.cargoContacto || "No especificado"}
+                    number={ref?.telefonoContacto || "No especificado"}
+                    email={ref?.emailContacto || "No especificado"}
+                    member={mappedRef.member}
+                    memberLabel={mappedRef.label}
+                    referenceType={ref.tipo}
+                    date={formatDate(dateToShow)}
+                    viewed={isRecibida ? isViewed : true}
+                  />
+                </TouchableOpacity>
               );
             })}
           </View>

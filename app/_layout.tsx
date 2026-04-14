@@ -72,6 +72,10 @@ export default function RootLayout() {
               name="(modals)/crearIncidencia"
               options={{ presentation: "modal" }}
             />
+            <Stack.Screen
+              name="(modals)/referencias/[id]"
+              options={{ presentation: "modal", gestureEnabled: true }}
+            />
           </Stack>
         </ToastProvider>
       </AuthProvider>

@@ -77,9 +77,9 @@ export default function CrearReunion() {
 
     // FECHA
     if (!fechaReunion) {
-      newErrors.fechaReunion = "La fecha de la referencia es requerida.";
+      newErrors.fechaReunion = "La fecha de la reunión es requerida.";
     } else if (fechaReunion > today) {
-      newErrors.fechaReunion = "La fecha de la referencia no puede ser futura.";
+      newErrors.fechaReunion = "La fecha de la reunión no puede ser futura.";
     }
 
     // TEMAS TRATADOS
@@ -164,7 +164,7 @@ export default function CrearReunion() {
 
           {/* ── Fecha de reunión ── */}
           <FormField
-            label="Fecha de la referencia"
+            label="Fecha de la reunión"
             icon="calendar-clear"
             error={errors.fechaReunion}
           >
