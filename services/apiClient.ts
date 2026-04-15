@@ -21,12 +21,14 @@ export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
   });
 
   let data = null;
-  const text = await res.text();
+  // const text = await res.text();
 
   try {
-    data = text ? JSON.parse(text) : null;
+    // data = text ? JSON.parse(text) : null;
+    data = await res.json();
   } catch {
-    data = text;
+    // data = text;
+    data = null;
   }
 
   if (res.status === 401) {
@@ -36,10 +38,7 @@ export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
 
   if (!res.ok) {
     throw new Error(
-      data?.message ||
-        data?.error ||
-        JSON.stringify(data) ||
-        `Request failed (${res.status})`,
+      data?.message || data?.error || `Request failed (${res.status})`,
     );
   }
 

@@ -12,6 +12,7 @@ import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Text,
   TextInput,
   TouchableOpacity,
@@ -85,9 +86,12 @@ export default function CrearReferencia() {
   }));
 
   // LOAD REFERENCIA (EDIT MODE)
+  const [originalReferencia, setOriginalReferencia] = useState<any>(null);
+
   const loadReferencia = async () => {
     try {
       const data = await getReferenciaById(id as string);
+      setOriginalReferencia(data);
 
       setForm({
         miembro: data.receptorId || null,
@@ -235,7 +239,6 @@ export default function CrearReferencia() {
       setSubmitting(true);
 
       const payload: any = {
-        receptorId: form.miembro,
         nombreContacto: form.nombreContacto,
         telefonoContacto: form.telefonoContacto || undefined,
         fechaReferencia: form.fechaReferencia
@@ -244,6 +247,9 @@ export default function CrearReferencia() {
         tipo: form.tipoReferencia === "interna" ? "INTERNA" : "EXTERNA",
       };
 
+      if (form.miembro !== originalReferencia?.receptorId) {
+        payload.receptorId = form.miembro;
+      }
       if (form.emailContacto) payload.emailContacto = form.emailContacto;
       if (form.cargoContacto) payload.cargoContacto = form.cargoContacto;
       if (form.descripcionReferencia)
@@ -259,12 +265,12 @@ export default function CrearReferencia() {
 
       router.back();
     } catch (error: any) {
-      showToast(
+      Alert.alert(
+        "Error",
         error.message ||
           (isEditMode
             ? "Error al actualizar la referencia"
             : "Error al crear la referencia"),
-        "error",
       );
     } finally {
       setSubmitting(false);
@@ -283,11 +289,12 @@ export default function CrearReferencia() {
       >
         <View style={globalStyles.containerText}>
           <Text style={globalStyles.containerTitle}>
-            Registra una referencia
+            {isEditMode ? "Editar Referencia" : "Registra una referencia"}
           </Text>
           <Text style={globalStyles.containerDescription}>
-            Referencia un contacto a un miembro de Coemac para que pueda
-            ayudarlo a resolver su problema.
+            {isEditMode
+              ? "Modifica los detalles de tu referencia."
+              : "Referencia un contacto a un miembro de Coemac."}
           </Text>
         </View>
         <View style={globalStyles.formFields}>
