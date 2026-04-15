@@ -31,3 +31,9 @@ export const markReferenciaAsViewed = async (id: string) => {
     method: "PATCH",
   });
 };
+
+export const deleteReferencia = async (id: string) => {
+  return apiFetch(`/referencias/${id}`, {
+    method: "DELETE",
+  });
+};
