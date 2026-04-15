@@ -1,5 +1,6 @@
 // const API_URL = "http://192.168.1.16:3000/api";
-const API_URL = "http://192.168.1.137:3000/api";
+//const API_URL = "http://192.168.1.137:3000/api";
+const API_URL = "http://192.168.0.14:3000/api";
 
 import { getToken } from "../storage/authStorage";
 
@@ -20,14 +21,10 @@ export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
     },
   });
 
-  let data = null;
-  // const text = await res.text();
-
+  let data;
   try {
-    // data = text ? JSON.parse(text) : null;
     data = await res.json();
-  } catch {
-    // data = text;
+  } catch (error) {
     data = null;
   }
 
@@ -38,7 +35,7 @@ export const apiFetch = async (endpoint: string, options: RequestInit = {}) => {
 
   if (!res.ok) {
     throw new Error(
-      data?.message || data?.error || `Request failed (${res.status})`,
+      data?.errors?.[0] || data?.message || "Something went wrong",
     );
   }
 
