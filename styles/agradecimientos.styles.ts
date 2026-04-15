@@ -188,4 +188,5 @@ export const agradecimientosStyles = StyleSheet.create({
     textDecorationLine: "underline",
     textAlign: "center",
   },
+  noDataText: { color: colors.secondaryText, textAlign: "center", marginTop: 20 }
 });

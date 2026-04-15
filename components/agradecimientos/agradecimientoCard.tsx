@@ -11,12 +11,12 @@ export interface AgradecimientoItem {
 
 interface Props {
   item: AgradecimientoItem;
+  isRecibido: boolean; 
 }
 
-export default function AgradecimientoCard({ item }: Props) {
+export default function AgradecimientoCard({ item, isRecibido }: Props) {
   return (
     <View style={styles.card}>
-      {/* Badge menta con importe */}
       <View style={styles.cardAmountBadge}>
         <Text style={styles.cardAmountText}>
           €{item.cantidad.toLocaleString("es-ES")}
@@ -27,7 +27,9 @@ export default function AgradecimientoCard({ item }: Props) {
       <View style={styles.cardContent}>
         <Text style={styles.cardTitle} numberOfLines={1}>
           <Text style={styles.cardUser}>{item.usuario}</Text>
-          <Text style={styles.cardTitleSuffix}> - Te ha dado las gracias!</Text>
+          <Text style={styles.cardTitleSuffix}>
+            {isRecibido ? " - Te ha dado las gracias!" : " - Le has dado las gracias!"}
+          </Text>
         </Text>
         <Text style={styles.cardMotivo}>Por: {item.motivo}</Text>
         <View style={styles.cardFooter}>
