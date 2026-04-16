@@ -44,7 +44,7 @@ export default function ReferenceCard({
         }),
       ]),
     ).start();
-  }, []);
+  }, [viewed]);
 
   return (
     <View style={[styles.card, viewed && styles.viewedCard]}>

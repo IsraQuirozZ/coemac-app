@@ -1,18 +1,19 @@
 // import { reunionesStyles as styles } from "@/styles/reuniones.styles";
-import { FontAwesome5, Ionicons } from "@expo/vector-icons";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useRef } from "react";
+import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
 import { colors } from "../../theme/colors";
 
 const DESCRIPTION_PREVIEW_LENGTH = 23;
 
 export interface ReunionItem {
   id: string;
+  nombre: string;
+  apellido: string;
+  empresa: string;
   dia: string;
   mes: string;
-  hora: string;
-  nombre: string;
-  empresa: string;
   descripcion: string;
+  viewed: boolean;
 }
 
 interface Props {
@@ -22,35 +23,64 @@ interface Props {
 }
 
 export default function ReunionCard({ item, isOpen, onToggle }: Props) {
+  const opacity = useRef(new Animated.Value(1)).current;
+
+  useEffect(() => {
+    if (item.viewed) return;
+
+    Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, {
+          toValue: 0.2,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacity, {
+          toValue: 1,
+          duration: 1000,
+          useNativeDriver: true,
+        }),
+      ]),
+    ).start();
+  }, [item.viewed]);
+
   const truncatedDescription =
     item.descripcion.length > DESCRIPTION_PREVIEW_LENGTH
       ? `${item.descripcion.slice(0, DESCRIPTION_PREVIEW_LENGTH).trimEnd()}...`
       : item.descripcion;
 
+  const mes =
+    item.mes.charAt(0).toUpperCase() + item.mes.slice(1).toLowerCase();
+
+  const iniciales =
+    `${item.nombre.charAt(0) ?? ""}${item.apellido.charAt(0) ?? ""}`.toUpperCase();
+
   return (
     <View>
-      <Pressable style={styles.card} onPress={onToggle}>
+      <Pressable
+        style={[styles.card, item.viewed && styles.viewedCard]}
+        onPress={onToggle}
+      >
         {/* Columna fecha: dos bloques apilados */}
-        <View style={styles.cardDateCol}>
-          <View style={styles.cardDateTop}>
-            <Text style={styles.cardDay}>{item.dia}</Text>
-            <Text style={styles.cardMonth}>{item.mes}</Text>
-          </View>
-          <Text style={styles.cardDateBottom}>{item.hora}</Text>
+        <View style={styles.cardDate}>
+          <Text style={styles.cardDay}>{item.dia}</Text>
+          <Text style={styles.cardMonth}>{mes}</Text>
         </View>
 
         <View style={styles.cardInfoContainer}>
           {/* Avatar */}
           <View style={styles.cardAvatar}>
-            <FontAwesome5 name="user" size={18} color="#9FBDB5" />
+            <Text style={styles.avatarName}>{iniciales}</Text>
           </View>
 
           {/* Info */}
           <View style={styles.cardInfo}>
-            <Text style={styles.cardHour}>{item.hora}</Text>
             <Text style={styles.cardName} numberOfLines={1}>
               <Text style={styles.cardNameBold}>{item.nombre}</Text>
-              <Text style={styles.cardNameNormal}> - {item.empresa}</Text>
+              <Text style={styles.cardNameNormal}>
+                {" "}
+                {item.empresa ? `- ${item.empresa}` : ""}
+              </Text>
             </Text>
             {isOpen ? (
               <Text style={styles.cardDesc}>{""}</Text>
@@ -60,14 +90,8 @@ export default function ReunionCard({ item, isOpen, onToggle }: Props) {
           </View>
         </View>
 
-        {isOpen ? (
-          <Ionicons name="chevron-down" size={20} color={colors.terciaryText} />
-        ) : (
-          <Ionicons
-            name="chevron-forward"
-            size={20}
-            color={colors.terciaryText}
-          />
+        {!item.viewed && (
+          <Animated.View style={[styles.viewedDot, { opacity }]} />
         )}
       </Pressable>
       {isOpen && <Text style={styles.fullDescription}>{item.descripcion}</Text>}
@@ -77,32 +101,38 @@ export default function ReunionCard({ item, isOpen, onToggle }: Props) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.background,
-    borderRadius: 16,
+    backgroundColor: "white",
+    borderColor: colors.light,
     borderWidth: 1,
-    borderColor: colors.border,
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 14,
-    paddingHorizontal: 14,
+    borderRadius: 12,
     shadowColor: "#000",
     shadowOpacity: 0.04,
     shadowOffset: { width: 0, height: 1 },
     shadowRadius: 4,
-    elevation: 1,
-    gap: 15,
-    justifyContent: "space-between",
+    elevation: 2,
+    padding: 12,
+    gap: 12,
+    flexDirection: "row",
+    height: 85,
   },
-
-  // ── Columna fecha (dos bloques apilados) ──
-  cardDateCol: { borderColor: colors.border, borderWidth: 1, borderRadius: 10 },
-  cardDateTop: {
+  viewedCard: {
+    borderColor: colors.border,
+  },
+  viewedDot: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: colors.success,
+  },
+  cardDate: {
+    borderColor: colors.border,
+    borderWidth: 1,
+    borderRadius: 10,
     backgroundColor: colors.soft,
-    borderTopLeftRadius: 9,
-    borderTopRightRadius: 9,
     alignItems: "center",
     justifyContent: "center",
-    padding: 4,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
   },
   cardDay: {
     fontSize: 20,
@@ -116,21 +146,6 @@ const styles = StyleSheet.create({
     color: colors.primary,
     lineHeight: 15,
   },
-  cardDateBottom: {
-    borderBottomLeftRadius: 9,
-    borderBottomRightRadius: 9,
-    borderColor: colors.border,
-    borderTopWidth: 1,
-    backgroundColor: colors.background,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 4,
-    paddingHorizontal: 7,
-    fontSize: 12,
-    color: colors.secondaryText,
-  },
-
-  // ── Avatar + info ──
   cardInfoContainer: {
     flexDirection: "row",
     gap: 15,
@@ -138,13 +153,22 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   cardAvatar: {
-    width: 50,
-    height: 50,
+    width: 55,
+    height: 55,
     borderRadius: 50,
     backgroundColor: colors.border,
     alignItems: "center",
     justifyContent: "center",
     flexShrink: 0,
+  },
+  avatarName: {
+    fontSize: 20,
+    color: colors.primary,
+    fontWeight: "700",
+  },
+  cardNameBold: {
+    fontWeight: "700",
+    color: colors.primary,
   },
   cardInfo: { gap: 2 },
   cardHour: {
@@ -152,13 +176,11 @@ const styles = StyleSheet.create({
     color: colors.secondaryText,
   },
   cardName: { fontSize: 16 },
-  cardNameBold: { fontWeight: "700", color: colors.primary },
   cardNameNormal: { color: colors.secondaryText },
   cardDesc: {
     fontSize: 12,
     color: colors.secondaryText,
   },
-  cardChevron: { flexShrink: 0, marginLeft: 2 },
   fullDescription: {
     backgroundColor: colors.soft,
     borderColor: colors.border,
