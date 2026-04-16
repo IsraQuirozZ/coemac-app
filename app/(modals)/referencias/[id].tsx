@@ -6,13 +6,16 @@ import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   ScrollView,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
 import { useAuth } from "../../../context/AuthContext";
+import { useToast } from "../../../hooks/useToast";
 import {
+  deleteReferencia,
   getReferenciaById,
   markReferenciaAsViewed,
 } from "../../../services/referenciaService";
@@ -20,6 +23,7 @@ import { colors } from "../../../theme/colors";
 
 export default function ReferenciaDetail() {
   const { user } = useAuth();
+  const { showToast } = useToast();
 
   const { id } = useLocalSearchParams();
 
@@ -73,6 +77,32 @@ export default function ReferenciaDetail() {
       fetchReferencia();
     }, [id]),
   );
+
+  const handleDelete = () => {
+    Alert.alert(
+      "Confirmar eliminación",
+      "¿Estás seguro de que deseas eliminar esta referencia?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Eliminar",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteReferencia(id as string);
+              showToast("Referencia eliminada", "success");
+              router.back();
+            } catch (error) {
+              console.log(error);
+              if (error instanceof Error) {
+                Alert.alert("Error", error.message);
+              }
+            }
+          },
+        },
+      ],
+    );
+  };
 
   return (
     <View style={{ flex: 1 }}>
@@ -200,7 +230,10 @@ export default function ReferenciaDetail() {
                 >
                   <Text style={styles.buttonText}>Editar</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.deleteButton}>
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={handleDelete}
+                >
                   <Text style={styles.buttonText}>Eliminar</Text>
                 </TouchableOpacity>
               </View>

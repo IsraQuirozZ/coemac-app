@@ -71,11 +71,11 @@ export const MemberSelectSheet = forwardRef<BottomSheet, Props>(
           <Text style={styles.title}>{title}</Text>
 
           {options.map((item) => {
-            const isSelected = selected === item;
+            const isSelected = selected?.id === item.id;
 
             return (
               <TouchableOpacity
-                key={item.name}
+                key={item.id}
                 onPress={() => {
                   onSelect(item);
                   (ref as any)?.current?.close();
