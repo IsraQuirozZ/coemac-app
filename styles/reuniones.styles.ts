@@ -1,20 +1,14 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet } from "react-native";
 
 export const reunionesStyles = StyleSheet.create({
-  container: {
-    flex: 1,                // Ocupa toda la pantalla
-    backgroundColor: 'white', // Fondo visible
-    paddingTop: 40,         // Espacio adicional para el header
+  // ── LISTA ──
+  filterContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginTop: 16,
-    color: '#333',
-  },
-  subtitle: {
-    fontSize: 16,
-    marginTop: 8,
-    color: '#666',
-  },
+  addButton: { position: "absolute", bottom: 110, right: 24, zIndex: 100 },
+
+  // ── CARD exterior ──
+  // Cambiada al componente ReunionCard para evitar conflictos con estilos del modal
 });

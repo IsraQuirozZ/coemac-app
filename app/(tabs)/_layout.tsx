@@ -1,72 +1,109 @@
-import { Ionicons } from '@expo/vector-icons';
-import { Tabs } from 'expo-router';
+import { Ionicons } from "@expo/vector-icons";
+import { Tabs } from "expo-router";
+import { StyleSheet, Text, View } from "react-native";
+import { colors } from "../../theme/colors";
 
 export default function TabsLayout() {
   return (
-    <Tabs>
+    <Tabs
+      screenOptions={({ route }) => ({
+        headerShown: false,
+        tabBarShowLabel: false,
+        tabBarStyle: styles.tabBar,
 
-      <Tabs.Screen
-        name="profile/index" 
-        options={{
-          href: null, // 👈 Esto oculta el icono de la barra de navegación inferior
-          headerShown: false, // 👈 Esto quita el encabezado (header) de arriba
-        }}
-      />
+        tabBarIcon: ({ focused }) => {
+          let iconName: any;
+          let label = "";
 
-      <Tabs.Screen
-        name="dashboard"
-        options={{
-          headerShown: false ,
-          title: 'perfil',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home" size={size} color={color} />
-          ),
-        }}
+          switch (route.name) {
+            case "dashboard":
+              iconName = "home-sharp";
+              label = "Dashboard";
+              break;
+            case "referencias/index":
+              iconName = "people-sharp";
+              label = "Referencias";
+              break;
+            case "reuniones/index":
+              iconName = "calendar-clear";
+              label = "Reuniones";
+              break;
+            case "agradecimientos/index":
+              iconName = "heart";
+              label = "GNC";
+              break;
+            case "incidencias/index":
+              iconName = "alert-circle";
+              label = "Incidencias";
+              break;
+            default:
+              return null;
+          }
 
-      />
-      <Tabs.Screen
-        name="referencias"
-        options={{
-          headerShown: false ,
-          title: 'Referencias',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="book" size={size} color={color} />
-          ),  
-        }}
-      />
-      
-      <Tabs.Screen
-        name="reuniones"
-        options={{
-          headerShown: false ,
-          title: 'Reuniones',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="people" size={size} color={color} />
-          ),
-        }}
-      />
-      
-      <Tabs.Screen
-        name="agradecimientos"
-        options={{
-          headerShown: false ,
-          title: 'Agradecimientos',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="heart" size={size} color={color} />
-          ),
-        }}
-      />
-
-      <Tabs.Screen
-        name="incidencias"
-        options={{
-          headerShown: false ,
-          title: 'Incidencias',
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="alert-circle" size={size} color={color} />
-          ),
-        }}
-      />
+          return (
+            <View style={styles.item}>
+              <Ionicons
+                name={iconName}
+                size={30}
+                color={focused ? colors.light : colors.terciaryText}
+              />
+              <Text
+                numberOfLines={1}
+                style={[
+                  styles.label,
+                  {
+                    color: focused ? colors.primary : colors.secondaryText,
+                  },
+                ]}
+              >
+                {label}
+              </Text>
+            </View>
+          );
+        },
+      })}
+    >
+      <Tabs.Screen name="dashboard" />
+      <Tabs.Screen name="referencias/index" />
+      <Tabs.Screen name="reuniones/index" />
+      <Tabs.Screen name="agradecimientos/index" />
+      <Tabs.Screen name="incidencias/index" />
+      <Tabs.Screen name="profile" options={{ href: null }} />
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  tabBar: {
+    height: 90,
+    backgroundColor: "white",
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    borderTopLeftRadius: 40,
+    borderTopRightRadius: 40,
+    shadowColor: "#00000080",
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 5,
+    paddingHorizontal: 10,
+    paddingTop: 12,
+    flexDirection: "row",
+  },
+
+  item: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 4,
+  },
+
+  label: {
+    textAlign: "center",
+    fontSize: 10,
+    fontWeight: "500",
+    width: "100%",
+  },
+});
