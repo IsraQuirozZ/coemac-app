@@ -1,29 +1,29 @@
 import Button from "@/components/ui/Button";
 import FormField from "@/components/ui/FormField";
 import HandlerIndicator from "@/components/ui/HandlerIndicator";
+import { crearIncidencia } from "@/services/incidenciaService";
 import { incidenciasStyles as styles } from "@/styles/incidencias.styles";
 import { colors } from "@/theme/colors";
 import { useRouter } from "expo-router";
 import { useState } from "react";
-import { Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Text, TextInput, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { useToast } from "../../hooks/useToast";
+import { useToast } from "../../hooks/useToast"; // Ajusta la ruta si es necesario
 
 export default function CrearIncidencia() {
   const router = useRouter();
   const { showToast } = useToast();
+  const [submitting, setSubmitting] = useState(false);
 
   const [form, setForm] = useState({
-    nombre: "",
     asunto: "",
-    problema: "",
+    descripcion: "",
   });
 
   const [isError, setIsError] = useState(false);
   const [errors, setErrors] = useState({
-    nombre: "",
     asunto: "",
-    problema: "",
+    descripcion: "",
   });
 
   const clearError = (field: keyof typeof errors) => {
@@ -32,48 +32,48 @@ export default function CrearIncidencia() {
 
   const validateForm = () => {
     const newErrors: any = {};
-    const nombre = form.nombre.trim();
     const asunto = form.asunto.trim();
-    const problema = form.problema.trim();
-
-    const nombreRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
-
-    // NOMBRE
-    if (!nombre) {
-      newErrors.nombre = "El nombre es requerido.";
-    } else if (nombre.length < 3) {
-      newErrors.nombre = "El nombre debe tener al menos 3 caracteres.";
-    } else if (!nombreRegex.test(nombre)) {
-      newErrors.nombre = "El nombre solo puede contener letras y espacios.";
-    }
+    const descripcion = form.descripcion.trim();
 
     // ASUNTO
     if (!asunto) {
       newErrors.asunto = "El asunto es requerido.";
-    } else if (asunto.length < 5) {
-      newErrors.asunto = "El asunto debe tener al menos 5 caracteres.";
+    } else if (asunto.length < 5 || asunto.length > 100) {
+      newErrors.asunto = "El asunto debe tener entre 5 y 100 caracteres.";
     }
 
-    // PROBLEMA
-    if (!problema) {
-      newErrors.problema = "El problema a resolver es requerido.";
-    } else if (problema.length < 10) {
-      newErrors.problema = "Describe el problema con al menos 10 caracteres.";
+    // DESCRIPCIÓN (Antes "problema")
+    if (!descripcion) {
+      newErrors.descripcion = "La descripción del problema es requerida.";
+    } else if (descripcion.length < 10) {
+      newErrors.descripcion = "Describe el problema con al menos 10 caracteres.";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const isValid = validateForm();
     if (!isValid) {
       setIsError(true);
       return;
     }
-    // TODO: prisma.incidencia.create({ data: { ...form, estado: "Pendiente" } })
-    showToast("Incidencia enviada", "success");
-    router.back();
+
+    try {
+      setSubmitting(true);
+      await crearIncidencia({
+        asunto: form.asunto.trim(),
+        descripcion: form.descripcion.trim(),
+      });
+
+      showToast("Incidencia enviada correctamente", "success");
+      router.back();
+    } catch (error: any) {
+      showToast(error.message || "Error al enviar la incidencia", "error");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -94,24 +94,10 @@ export default function CrearIncidencia() {
         </View>
 
         <View style={styles.formFields}>
-
-          {/* ── Tu nombre ── */}
-          <FormField label="Tu nombre" icon="person-sharp" error={errors.nombre}>
-            <TextInput
-              placeholder="Nombre Apellido"
-              placeholderTextColor={colors.secondaryText}
-              value={form.nombre}
-              onChangeText={(text) => {
-                setForm({ ...form, nombre: text });
-                clearError("nombre");
-              }}
-            />
-          </FormField>
-
           {/* ── Asunto ── */}
           <FormField label="Asunto" icon="pencil" error={errors.asunto}>
             <TextInput
-              placeholder="Asunto..."
+              placeholder="Asunto de la incidencia..."
               placeholderTextColor={colors.secondaryText}
               value={form.asunto}
               onChangeText={(text) => {
@@ -121,32 +107,34 @@ export default function CrearIncidencia() {
             />
           </FormField>
 
-          {/* ── Problema a resolver ── */}
-          <FormField label="Problema a resolver" icon="build" error={errors.problema}>
+          {/* ── Problema a resolver (Descripción) ── */}
+          <FormField label="Problema a resolver" icon="build" error={errors.descripcion}>
             <TextInput
-              placeholder="Tu texto aquí..."
+              placeholder="Describe detalladamente tu problema aquí..."
               placeholderTextColor={colors.secondaryText}
               multiline
               numberOfLines={5}
               style={styles.textArea}
-              value={form.problema}
+              value={form.descripcion}
               onChangeText={(text) => {
-                setForm({ ...form, problema: text });
-                clearError("problema");
+                setForm({ ...form, descripcion: text });
+                clearError("descripcion");
               }}
             />
           </FormField>
-
         </View>
 
         {isError && (
-          <Text style={{ color: colors.error, textAlign: "center" }}>
-            Por favor, solucione los errores antes de enviar.
+          <Text style={{ color: colors.error, textAlign: "center", marginBottom: 10 }}>
+            {Object.values(errors).find(msg => msg !== "") || "Por favor, solucione los errores antes de enviar."}
           </Text>
         )}
 
-        <Button label="Enviar Incidencia" variant="primary" onPress={handleSubmit} />
-
+        {submitting ? (
+          <ActivityIndicator color={colors.primary} />
+        ) : (
+          <Button label="Enviar Incidencia" variant="primary" onPress={handleSubmit} />
+        )}
       </KeyboardAwareScrollView>
     </View>
   );

@@ -1,23 +1,39 @@
-import { StyleSheet } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 import { colors } from "../theme/colors";
 
 export const incidenciasStyles = StyleSheet.create({
   cards: { gap: 20 },
+
   // ── CARDS ──
   card: {
     backgroundColor: colors.background,
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: "#E2E2E2",
     paddingVertical: 14,
     paddingHorizontal: 16,
-    shadowColor: "#000",
-    shadowOpacity: 0.04,
-    shadowOffset: { width: 0, height: 1 },
-    shadowRadius: 4,
-    elevation: 1,
+    borderWidth: 1,
+    borderColor: "#E2E2E2",
     gap: 6,
+
+    // ── SOMBRAS ADAPTADAS POR PLATAFORMA ──
+    ...Platform.select({
+      ios: {
+        // Optimizado para tu iPhone
+        shadowColor: "#000",
+        shadowOpacity: 0.04,
+        shadowOffset: { width: 0, height: 1 },
+        shadowRadius: 4,
+      },
+      android: {
+        // Optimizado para dispositivos Android
+        elevation: 2,
+      },
+      web: {
+        // Esto limpia los warnings de tu consola en el navegador
+        boxShadow: "0px 1px 4px rgba(0,0,0,0.04)",
+      },
+    }),
   },
+
   cardHeader: {
     flexDirection: "row",
     justifyContent: "space-between",

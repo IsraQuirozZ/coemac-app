@@ -1,33 +1,61 @@
 import IncidenciaCard from "@/components/incidencias/incidenciaCard";
 import Header from "@/components/layout/Header";
 import Button from "@/components/ui/Button";
+import { actualizarEstadoIncidencia, getIncidencias } from "@/services/incidenciaService";
 import { globalStyles } from "@/styles/globals.styles";
 import { incidenciasStyles as styles } from "@/styles/incidencias.styles";
-import { useRouter } from "expo-router";
-import { ScrollView, Text, View } from "react-native";
-
-// ─────────────────────────────────────────
-// MOCK DATA — TODO: prisma.incidencia.findMany({ where: { userId: currentUser.id } })
-// ─────────────────────────────────────────
-const MOCK_INCIDENCIAS = [
-  {
-    id: "1",
-    asunto: "Fallo agradecimientos",
-    fallo: "Envío erróneo en formulario de agradecim...",
-    fecha: "17 Mar 2026",
-    estado: "Pendiente" as const,
-  },
-  {
-    id: "2",
-    asunto: "Fallo agradecimientos",
-    fallo: "Envío erróneo en formulario de agradecim...",
-    fecha: "17 Mar 2026",
-    estado: "Resuelta" as const,
-  },
-];
+import { colors } from "@/theme/colors";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useState } from "react";
+import { ActivityIndicator, ScrollView, Text, View } from "react-native";
+import { useToast } from "../../../hooks/useToast";
 
 export default function Incidencias() {
   const router = useRouter();
+  const { showToast } = useToast();
+  const [incidencias, setIncidencias] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const data = await getIncidencias();
+      setIncidencias(data);
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchData();
+    }, [])
+  );
+
+  const handleMarcarResuelta = async (id: string) => {
+    try {
+      await actualizarEstadoIncidencia(id, "RESUELTA");
+      
+      showToast("Incidencia marcada como resuelta", "success");
+      
+      // Actualización "optimista" de la lista local
+      setIncidencias((prev) =>
+        prev.map((inc) => (inc.id === id ? { ...inc, estado: "RESUELTA" } : inc))
+      );
+    } catch (error: any) {
+      console.error("Error detallado:", error);
+      showToast("Error al actualizar: " + error.message, "error");
+    }
+  };
+
+  const formatDate = (dateStr: string) =>
+    new Date(dateStr).toLocaleDateString("es-ES", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    });
 
   return (
     <View style={{ flex: 1 }}>
@@ -37,15 +65,33 @@ export default function Incidencias() {
         <View style={globalStyles.containerText}>
           <Text style={globalStyles.containerTitle}>Incidencias Enviadas</Text>
           <Text style={globalStyles.containerDescription}>
-            Revisa el estado de tus incidencias enviadas.
+            Revisa el estado de tus incidencias o marca como resueltas las pendientes.
           </Text>
         </View>
 
-        <View style={styles.cards}>
-          {MOCK_INCIDENCIAS.map((item) => (
-            <IncidenciaCard key={item.id} item={item} />
-          ))}
-        </View>
+        {loading ? (
+          <ActivityIndicator color={colors.primary} />
+        ) : incidencias.length === 0 ? (
+          <Text style={{ textAlign: "center", marginTop: 20, color: colors.secondaryText }}>
+            No tienes incidencias registradas.
+          </Text>
+        ) : (
+          <View style={styles.cards}>
+            {incidencias.map((item) => (
+              <IncidenciaCard
+                key={item.id}
+                item={{
+                  id: item.id,
+                  asunto: item.asunto,
+                  descripcion: item.descripcion,
+                  fecha: formatDate(item.createdAt),
+                  estado: item.estado,
+                }}
+                onMarcarResuelta={handleMarcarResuelta}
+              />
+            ))}
+          </View>
+        )}
       </ScrollView>
 
       <Button
