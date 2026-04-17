@@ -3,39 +3,39 @@ import { DatePickerSheet } from "@/components/ui/DatePickerSheet";
 import FormField from "@/components/ui/FormField";
 import HandlerIndicator from "@/components/ui/HandlerIndicator";
 import { MemberSelectSheet } from "@/components/ui/MemberSelectSheet";
+import { getUsuarios } from "@/services/usuarioService";
 import { globalStyles } from "@/styles/globals.styles";
 import { colors } from "@/theme/colors";
 import { Ionicons } from "@expo/vector-icons";
 import BottomSheet from "@gorhom/bottom-sheet";
-import { useNavigation, useRouter } from "expo-router";
+import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Alert,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useToast } from "../../hooks/useToast";
-
-// TODO: Replace with → prisma.miembro.findMany()
-const memberOptions = [
-  { name: "Ana Martínez", company: "Tech Solutions" },
-  { name: "Carlos López", company: "Innovatech" },
-  { name: "Elena García", company: "Digital Minds" },
-  { name: "Fernando Ruiz", company: "Future Systems" },
-  { name: "Isabel Sánchez", company: "NetWorks Inc" },
-  { name: "Javier Torres", company: "Cloud Dynamics" },
-  { name: "Laura Fernández", company: "Smart Ventures" },
-  { name: "Miguel Herrera", company: "Data Solutions" },
-];
+import { crearReunion, getReunionById } from "../../services/reunionService";
 
 export default function CrearReunion() {
-  // TOAST
   const { showToast } = useToast();
+  const router = useRouter();
+  const navigation = useNavigation();
 
-  // MODALS (SELECT & DATEPICKER)
-  const [date, setDate] = useState(new Date());
-  const dateSheetRef = useRef<BottomSheet>(null);
+  // MODALS (MEMBER SELECT & DATEPICKER)
+  const [isAnySheetOpen, setIsAnySheetOpen] = useState(false);
+
+  const [submitting, setSubmitting] = useState(false);
+  const [members, setMembers] = useState<any[]>([]);
+  const [selectedMember, setSelectedMember] = useState<any | null>(null);
   const memberSheetRef = useRef<BottomSheet>(null);
 
-  const [isAnySheetOpen, setIsAnySheetOpen] = useState(false);
-  const navigation = useNavigation();
+  const dateSheetRef = useRef<BottomSheet>(null);
 
   useEffect(() => {
     navigation.setOptions({
@@ -43,22 +43,78 @@ export default function CrearReunion() {
     });
   }, [isAnySheetOpen]);
 
-  const router = useRouter();
+  // CARGAR MIEMBROS
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const data = await getUsuarios();
+        setMembers(data);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    fetchUsers();
+  }, []);
 
-  const [selectedMember, setSelectedMember] = useState<string | null>(null);
+  const memberOptions = members.map((m) => ({
+    id: m.id,
+    name: `${m.nombre} ${m.apellido}`,
+    company: m.empresa || "Sin empresa",
+  }));
 
-  // Simulación de envío de formulario
+  // FORM
   const [form, setForm] = useState({
-    miembro: null as string | null,
-    fechaReunion: date,
-    temasTratados: "",
+    invitadoId: null as string | null,
+    fechaReunion: new Date(),
+    descripcion: "",
   });
+
+  // EDIT MODE
+  const { id } = useLocalSearchParams();
+  const isEditMode = !!id;
+  const [originalReunion, setOriginalReunion] = useState<any>(null);
+
+  const loadReunion = async () => {
+    try {
+      const data = await getReunionById(id as string);
+      setOriginalReunion(data);
+
+      setForm({
+        invitadoId: data.invitadoId || null,
+        fechaReunion: data.fecha ? new Date(data.fecha) : new Date(),
+        descripcion: data.descripcion || "",
+      });
+    } catch (error) {
+      console.log("Error loading reunion", error);
+    }
+  };
+
+  useEffect(() => {
+    if (!isEditMode) return;
+
+    loadReunion();
+  }, [id]);
+
+  // SINCRONIZAR MIEMBRO
+  useEffect(() => {
+    if (!members.length || !form.invitadoId) return;
+
+    const member = members.find((m) => m.id === form.invitadoId);
+
+    if (member) {
+      setSelectedMember({
+        id: member.id,
+        name: `${member.nombre} ${member.apellido}`,
+        company: member.empresa || "Sin empresa",
+      });
+    }
+  }, [members, form.invitadoId]);
 
   const [isError, setIsError] = useState(false);
   const [errors, setErrors] = useState({
-    miembro: "",
+    invitadoId: "",
     fechaReunion: "",
-    temasTratados: "",
+    descripcion: "",
   });
 
   const validateForm = () => {
@@ -66,13 +122,13 @@ export default function CrearReunion() {
 
     const fechaReunion = form.fechaReunion;
     const today = new Date();
-    const temasTratados = form.temasTratados.trim();
+    const descripcion = form.descripcion.trim();
 
-    const textRegex = /^.{10,}$/;
+    const descripcionRegex = /^.{10,}$/;
 
     // MIEMBRO
-    if (!form.miembro) {
-      newErrors.miembro = "Selecciona un miembro";
+    if (!form.invitadoId) {
+      newErrors.invitadoId = "Selecciona un miembro";
     }
 
     // FECHA
@@ -82,10 +138,10 @@ export default function CrearReunion() {
       newErrors.fechaReunion = "La fecha de la reunión no puede ser futura.";
     }
 
-    // TEMAS TRATADOS
-    if (temasTratados && !textRegex.test(temasTratados)) {
-      newErrors.temasTratados =
-        "Escribe al menos 10 caracteres para los temas tratados.";
+    // Descripcion
+    if (descripcion && !descripcionRegex.test(descripcion)) {
+      newErrors.descripcion =
+        "Escribe al menos 10 caracteres para la descripción.";
     }
 
     setErrors(newErrors);
@@ -101,8 +157,8 @@ export default function CrearReunion() {
     }
   };
 
-  const handleSubmit = () => {
-    // TODO: prisma.reunion.create({ data: { miembro: selectedMember, fecha: date, temas } })
+  // SUBMIT
+  const handleSubmit = async () => {
     const isValid = validateForm();
 
     if (!isValid) {
@@ -110,10 +166,39 @@ export default function CrearReunion() {
       return;
     }
 
-    console.log("Formulario válido", form);
-    showToast("Reunión registrada", "success");
+    try {
+      setSubmitting(true);
 
-    router.back();
+      const payload: any = {};
+
+      if (
+        !isEditMode ||
+        form.fechaReunion.toISOString() !== originalReunion?.fecha
+      ) {
+        payload.fecha = form.fechaReunion.toISOString();
+      }
+
+      if (form.invitadoId !== originalReunion?.invitadoId) {
+        payload.invitadoId = form.invitadoId;
+      }
+      if (form.descripcion !== originalReunion?.descripcion) {
+        payload.descripcion = form.descripcion.trim();
+      }
+
+      if (isEditMode) {
+        // Aún no hay endpoint de edición, así que por ahora solo mostramos un mensaje
+        showToast("Funcionalidad de edición no implementada aún");
+      } else {
+        await crearReunion(payload);
+        showToast("Reunión registrada", "success");
+      }
+
+      router.back();
+    } catch (error: any) {
+      Alert.alert("Error", error.message || "Error al registrar la reunión");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -127,18 +212,22 @@ export default function CrearReunion() {
         keyboardDismissMode="on-drag"
       >
         <View style={globalStyles.containerText}>
-          <Text style={globalStyles.containerTitle}>Registra una reunión</Text>
+          <Text style={globalStyles.containerTitle}>
+            {isEditMode ? "Editar reunión" : "Registra una reunión"}
+          </Text>
           <Text style={globalStyles.containerDescription}>
-            Registra la reunión que tuviste con algún miembro.
+            {isEditMode
+              ? "Edita la información de la reunión."
+              : "Registra la reunión que tuviste con algún miembro."}
           </Text>
         </View>
         <View style={globalStyles.formFields}>
           {/* ── Reunión con (member picker) ── */}
 
           <FormField
-            label="Referencia para"
+            label="Reunión con"
             icon="megaphone"
-            error={errors.miembro}
+            error={errors.invitadoId}
           >
             <TouchableOpacity
               onPress={() => memberSheetRef.current?.snapToIndex(0)}
@@ -151,7 +240,9 @@ export default function CrearReunion() {
                       : colors.secondaryText,
                   }}
                 >
-                  {selectedMember || "Selecciona un miembro"}
+                  {selectedMember
+                    ? selectedMember.name
+                    : "Selecciona un miembro"}
                 </Text>
                 <Ionicons
                   name="chevron-down"
@@ -174,7 +265,7 @@ export default function CrearReunion() {
               }}
             >
               <Text>
-                {date.toLocaleDateString("es-ES", {
+                {form.fechaReunion.toLocaleDateString("es-ES", {
                   day: "numeric",
                   month: "short",
                   year: "numeric",
@@ -187,7 +278,7 @@ export default function CrearReunion() {
           <FormField
             label="Temas tratados"
             icon="reader"
-            error={errors.temasTratados}
+            error={errors.descripcion}
           >
             <TextInput
               placeholder="Tu texto aquí..."
@@ -195,10 +286,10 @@ export default function CrearReunion() {
               multiline
               numberOfLines={4}
               style={globalStyles.textArea}
-              value={form.temasTratados}
+              value={form.descripcion}
               onChangeText={(text) => {
-                setForm({ ...form, temasTratados: text });
-                clearError("temasTratados");
+                setForm({ ...form, descripcion: text });
+                clearError("descripcion");
               }}
             />
           </FormField>
@@ -208,34 +299,42 @@ export default function CrearReunion() {
             Por favor, solucione los errores antes de enviar.
           </Text>
         )}
-        <Button
-          label="Registrar Reunión"
-          variant="primary"
-          onPress={handleSubmit}
-        />
+        {submitting ? (
+          <ActivityIndicator color={colors.primary} />
+        ) : (
+          <Button
+            label={
+              submitting
+                ? isEditMode
+                  ? "Actualizando..."
+                  : "Registrando..."
+                : isEditMode
+                  ? "Actualizar Reunión"
+                  : "Registrar Reunión"
+            }
+            variant="primary"
+            onPress={handleSubmit}
+            disabled={submitting}
+          />
+        )}
       </KeyboardAwareScrollView>
       {/* BOTTOM SHEET DE MIEMBROS */}
       <MemberSelectSheet
         ref={memberSheetRef}
         options={memberOptions}
-        selected={
-          selectedMember
-            ? memberOptions.find((m) => m.name === selectedMember) || null
-            : null
-        }
+        selected={selectedMember}
         onSelect={(member) => {
-          setSelectedMember(member.name);
-          setForm((prev) => ({ ...prev, miembro: member.name }));
-          clearError("miembro");
+          setSelectedMember(member);
+          setForm((prev) => ({ ...prev, invitadoId: member.id }));
+          clearError("invitadoId");
         }}
         onOpenChange={(open) => setIsAnySheetOpen(open)}
       />
       {/* BOTTOM SHEET DE DATEPICKER */}
       <DatePickerSheet
         ref={dateSheetRef}
-        value={date}
+        value={form.fechaReunion}
         onConfirm={(selectedDate) => {
-          setDate(selectedDate);
           setForm((prev) => ({
             ...prev,
             fechaReunion: selectedDate,

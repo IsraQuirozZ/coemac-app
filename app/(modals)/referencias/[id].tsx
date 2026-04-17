@@ -122,9 +122,10 @@ export default function ReferenciaDetail() {
                 {referencia?.nombreContacto}
               </Text>
               <Text style={styles.cargoContainer}>
-                {referencia?.cargoContacto || "No especificado"}
+                {referencia?.cargoContacto || "Cargo no especificado"}
               </Text>
             </View>
+
             <View style={styles.divider}></View>
             <View style={styles.infoContainer}>
               <View style={styles.info}>

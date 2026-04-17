@@ -8,7 +8,13 @@ import { reunionesStyles as styles } from "@/styles/reuniones.styles";
 import { colors } from "@/theme/colors";
 import { useFocusEffect, useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import { ActivityIndicator, ScrollView, Text, View } from "react-native";
+import {
+  ActivityIndicator,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 export default function Reuniones() {
   const [loading, setLoading] = useState(true);
@@ -136,16 +142,18 @@ export default function Reuniones() {
             {reuniones.map((item) => {
               const mapped = mapReunionToCard(item);
 
-              return (
-                <ReunionCard
-                  key={item.id}
-                  item={mapped}
-                  isOpen={openCardId === item.id}
-                  onToggle={() =>
-                    setOpenCardId((prev) => (prev === item.id ? null : item.id))
-                  }
-                />
+              // const isReceived = direccion === "Recibidas";
+              // const isViewed = !!item.viewedAt;
+
+              const card = (
+                <TouchableOpacity
+                  onPress={() => router.push(`/(modals)/reuniones/${item.id}`)}
+                >
+                  <ReunionCard item={mapped} />
+                </TouchableOpacity>
               );
+
+              return <View key={item.id}>{card}</View>;
             })}
           </View>
         )}

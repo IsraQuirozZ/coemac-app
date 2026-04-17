@@ -49,4 +49,10 @@ export const globalStyles = StyleSheet.create({
     right: 24,
     zIndex: 100,
   },
+
+  // DIVIDER
+  divider: {
+    height: 1,
+    backgroundColor: colors.border,
+  },
 });
