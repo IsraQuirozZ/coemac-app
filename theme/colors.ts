@@ -9,8 +9,12 @@ export const colors = {
   terciaryText: "#D9D9D9",
   border: "#E5E7EB",
   success: "#22C55E",
+  successLight: "#22c55eb6",
   error: "#EF4444",
+  errorLight: "#c62929d7",
   warning: "#FBBF24",
+  warningLight: "#FEF3C7",
   info: "#3B82F6",
+  infoLight: "#BFDBFE",
   handlerIndicator: "#ccc",
 };

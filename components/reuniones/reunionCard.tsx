@@ -1,6 +1,6 @@
 // import { reunionesStyles as styles } from "@/styles/reuniones.styles";
 import React, { useEffect, useRef } from "react";
-import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
+import { Animated, StyleSheet, Text, View } from "react-native";
 import { colors } from "../../theme/colors";
 
 const DESCRIPTION_PREVIEW_LENGTH = 23;
@@ -18,11 +18,9 @@ export interface ReunionItem {
 
 interface Props {
   item: ReunionItem;
-  isOpen: boolean;
-  onToggle: () => void;
 }
 
-export default function ReunionCard({ item, isOpen, onToggle }: Props) {
+export default function ReunionCard({ item }: Props) {
   const opacity = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -57,10 +55,7 @@ export default function ReunionCard({ item, isOpen, onToggle }: Props) {
 
   return (
     <View>
-      <Pressable
-        style={[styles.card, item.viewed && styles.viewedCard]}
-        onPress={onToggle}
-      >
+      <View style={[styles.card, item.viewed && styles.viewedCard]}>
         {/* Columna fecha: dos bloques apilados */}
         <View style={styles.cardDate}>
           <Text style={styles.cardDay}>{item.dia}</Text>
@@ -82,19 +77,16 @@ export default function ReunionCard({ item, isOpen, onToggle }: Props) {
                 {item.empresa ? `- ${item.empresa}` : ""}
               </Text>
             </Text>
-            {isOpen ? (
-              <Text style={styles.cardDesc}>{""}</Text>
-            ) : (
-              <Text style={styles.cardDesc}>{truncatedDescription}</Text>
-            )}
+            <Text style={styles.cardDesc} numberOfLines={1}>
+              {truncatedDescription}
+            </Text>
           </View>
         </View>
 
         {!item.viewed && (
           <Animated.View style={[styles.viewedDot, { opacity }]} />
         )}
-      </Pressable>
-      {isOpen && <Text style={styles.fullDescription}>{item.descripcion}</Text>}
+      </View>
     </View>
   );
 }
