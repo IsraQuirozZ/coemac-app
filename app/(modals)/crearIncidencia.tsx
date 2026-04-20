@@ -1,30 +1,56 @@
 import Button from "@/components/ui/Button";
+import { DatePickerSheet } from "@/components/ui/DatePickerSheet";
 import FormField from "@/components/ui/FormField";
 import HandlerIndicator from "@/components/ui/HandlerIndicator";
-import { crearIncidencia } from "@/services/incidenciaService";
-import { incidenciasStyles as styles } from "@/styles/incidencias.styles";
+import { actualizarEstadoIncidencia, crearIncidencia, getIncidenciaById } from "@/services/incidenciaService";
+import { globalStyles } from "@/styles/globals.styles";
 import { colors } from "@/theme/colors";
-import { useRouter } from "expo-router";
-import { useState } from "react";
-import { ActivityIndicator, Text, TextInput, View } from "react-native";
+import BottomSheet from "@gorhom/bottom-sheet";
+import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
+import { useEffect, useRef, useState } from "react";
+import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
-import { useToast } from "../../hooks/useToast"; // Ajusta la ruta si es necesario
+import { useToast } from "../../hooks/useToast";
 
 export default function CrearIncidencia() {
+  const [submitting, setSubmitting] = useState(false);
+  const { id } = useLocalSearchParams();
+  const isEditMode = !!id;
+
+  const dateSheetRef = useRef<BottomSheet>(null);
+  const [isAnySheetOpen, setIsAnySheetOpen] = useState(false);
+  const navigation = useNavigation();
   const router = useRouter();
   const { showToast } = useToast();
-  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => { navigation.setOptions({ gestureEnabled: !isAnySheetOpen }); }, [isAnySheetOpen]);
 
   const [form, setForm] = useState({
-    asunto: "",
-    descripcion: "",
+    asunto: "", descripcion: "", fechaIncidencia: new Date(), estado: "PENDIENTE"
   });
 
-  const [isError, setIsError] = useState(false);
-  const [errors, setErrors] = useState({
-    asunto: "",
-    descripcion: "",
-  });
+  const [errors, setErrors] = useState({ asunto: "", descripcion: "" });
+
+  useEffect(() => {
+    if (isEditMode) loadIncidencia();
+  }, [id]);
+
+  const loadIncidencia = async () => {
+    try {
+      setSubmitting(true);
+      const data = await getIncidenciaById(id as string);
+      setForm({
+        asunto: data.asunto || "",
+        descripcion: data.descripcion || "",
+        fechaIncidencia: data.fechaIncidencia ? new Date(data.fechaIncidencia) : new Date(),
+        estado: data.estado || "PENDIENTE"
+      });
+    } catch (error) {
+      showToast("Error al cargar datos", "error");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
   const clearError = (field: keyof typeof errors) => {
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
@@ -32,45 +58,33 @@ export default function CrearIncidencia() {
 
   const validateForm = () => {
     const newErrors: any = {};
-    const asunto = form.asunto.trim();
-    const descripcion = form.descripcion.trim();
-
-    // ASUNTO
-    if (!asunto) {
-      newErrors.asunto = "El asunto es requerido.";
-    } else if (asunto.length < 5 || asunto.length > 100) {
-      newErrors.asunto = "El asunto debe tener entre 5 y 100 caracteres.";
-    }
-
-    // DESCRIPCIÓN (Antes "problema")
-    if (!descripcion) {
-      newErrors.descripcion = "La descripción del problema es requerida.";
-    } else if (descripcion.length < 10) {
-      newErrors.descripcion = "Describe el problema con al menos 10 caracteres.";
-    }
-
+    if (!form.asunto.trim()) newErrors.asunto = "El asunto es requerido.";
+    if (!form.descripcion.trim()) newErrors.descripcion = "La descripción es requerida.";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async () => {
-    const isValid = validateForm();
-    if (!isValid) {
-      setIsError(true);
-      return;
-    }
-
+    if (!validateForm()) return;
     try {
       setSubmitting(true);
-      await crearIncidencia({
-        asunto: form.asunto.trim(),
-        descripcion: form.descripcion.trim(),
-      });
+      const payload = {
+        asunto: form.asunto,
+        descripcion: form.descripcion,
+        fechaIncidencia: form.fechaIncidencia.toISOString(),
+        estado: form.estado, 
+      };
 
-      showToast("Incidencia enviada correctamente", "success");
+      if (isEditMode) {
+        await actualizarEstadoIncidencia(id as string, payload);
+        showToast("Incidencia actualizada", "success");
+      } else {
+        await crearIncidencia(payload);
+        showToast("Incidencia registrada", "success");
+      }
       router.back();
     } catch (error: any) {
-      showToast(error.message || "Error al enviar la incidencia", "error");
+      showToast("Error al procesar", "error");
     } finally {
       setSubmitting(false);
     }
@@ -78,64 +92,56 @@ export default function CrearIncidencia() {
 
   return (
     <View style={{ flex: 1 }}>
-      <KeyboardAwareScrollView
-        contentContainerStyle={styles.formContainer}
-        keyboardShouldPersistTaps="handled"
-        extraScrollHeight={30}
-        enableOnAndroid={true}
-      >
-        <HandlerIndicator />
-
-        <View style={styles.formHeaderText}>
-          <Text style={styles.formTitle}>¿Tienes algún problema?</Text>
-          <Text style={styles.formSubtitle}>
-            Abre una incidencia de algún problema o fallo que hayas tenido con la aplicación.
-          </Text>
+      <HandlerIndicator />
+      <KeyboardAwareScrollView contentContainerStyle={globalStyles.formContainer}>
+        <View style={globalStyles.containerText}>
+          <Text style={globalStyles.containerTitle}>{isEditMode ? "Editar Incidencia" : "Nueva Incidencia"}</Text>
+          <Text style={globalStyles.containerDescription}>Completa los datos del problema detectado.</Text>
         </View>
 
-        <View style={styles.formFields}>
-          {/* ── Asunto ── */}
+        <View style={globalStyles.formFields}>
           <FormField label="Asunto" icon="pencil" error={errors.asunto}>
             <TextInput
-              placeholder="Asunto de la incidencia..."
+              placeholder="Ej: Problema con la red"
               placeholderTextColor={colors.secondaryText}
               value={form.asunto}
-              onChangeText={(text) => {
-                setForm({ ...form, asunto: text });
-                clearError("asunto");
-              }}
+              onChangeText={(text) => { setForm({ ...form, asunto: text }); clearError("asunto"); }}
             />
           </FormField>
 
-          {/* ── Problema a resolver (Descripción) ── */}
-          <FormField label="Problema a resolver" icon="build" error={errors.descripcion}>
+          <FormField label="Fecha del suceso" icon="calendar-clear">
+            <TouchableOpacity onPress={() => dateSheetRef.current?.snapToIndex(0)}>
+              <Text style={{ paddingVertical: 10 }}>
+                {form.fechaIncidencia.toLocaleDateString("es-ES", { day: "numeric", month: "short", year: "numeric" })}
+              </Text>
+            </TouchableOpacity>
+          </FormField>
+
+          <FormField label="Descripción" icon="build" error={errors.descripcion}>
             <TextInput
-              placeholder="Describe detalladamente tu problema aquí..."
+              placeholder="Detalla lo ocurrido..."
               placeholderTextColor={colors.secondaryText}
               multiline
-              numberOfLines={5}
-              style={styles.textArea}
+              numberOfLines={4}
+              style={{ minHeight: 80, textAlignVertical: "top" }}
               value={form.descripcion}
-              onChangeText={(text) => {
-                setForm({ ...form, descripcion: text });
-                clearError("descripcion");
-              }}
+              onChangeText={(text) => { setForm({ ...form, descripcion: text }); clearError("descripcion"); }}
             />
           </FormField>
         </View>
 
-        {isError && (
-          <Text style={{ color: colors.error, textAlign: "center", marginBottom: 10 }}>
-            {Object.values(errors).find(msg => msg !== "") || "Por favor, solucione los errores antes de enviar."}
-          </Text>
-        )}
-
         {submitting ? (
-          <ActivityIndicator color={colors.primary} />
+          <ActivityIndicator color={colors.primary} style={{ marginTop: 20 }} />
         ) : (
-          <Button label="Enviar Incidencia" variant="primary" onPress={handleSubmit} />
+          <Button label={isEditMode ? "Actualizar" : "Enviar"} variant="primary" onPress={handleSubmit} disabled={submitting} />
         )}
       </KeyboardAwareScrollView>
+
+      <DatePickerSheet
+        ref={dateSheetRef} value={form.fechaIncidencia}
+        onConfirm={(selectedDate) => { setForm({ ...form, fechaIncidencia: selectedDate }); }}
+        onOpenChange={setIsAnySheetOpen}
+      />
     </View>
   );
 }

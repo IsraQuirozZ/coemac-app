@@ -1,26 +1,51 @@
 import IncidenciaCard from "@/components/incidencias/incidenciaCard";
 import Header from "@/components/layout/Header";
 import Button from "@/components/ui/Button";
-import { actualizarEstadoIncidencia, getIncidencias } from "@/services/incidenciaService";
+import FilterButton from "@/components/ui/FilterButton";
+import SwipeActions from "@/components/ui/SwipeActions";
+import { useToast } from "@/hooks/useToast";
+import {
+  actualizarEstadoIncidencia,
+  eliminarIncidencia,
+  getIncidencias,
+} from "@/services/incidenciaService";
 import { globalStyles } from "@/styles/globals.styles";
 import { incidenciasStyles as styles } from "@/styles/incidencias.styles";
 import { colors } from "@/theme/colors";
+import * as Haptics from "expo-haptics";
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useState } from "react";
-import { ActivityIndicator, ScrollView, Text, View } from "react-native";
-import { useToast } from "../../../hooks/useToast";
+import { useCallback, useRef, useState } from "react";
+import { ActivityIndicator, Alert, ScrollView, Text, View } from "react-native";
+import { Swipeable } from "react-native-gesture-handler";
+
+export type FilterType = "Pendientes" | "Resueltas";
 
 export default function Incidencias() {
   const router = useRouter();
   const { showToast } = useToast();
+
+  const swipeRefs = useRef<{ [key: string]: Swipeable | null }>({});
+  const [openSwipeId, setOpenSwipeId] = useState<string | null>(null);
+
+  const [filter, setFilter] = useState<FilterType>("Pendientes");
   const [incidencias, setIncidencias] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  const handleOpenSwipe = (id: string) => {
+    if (openSwipeId && openSwipeId !== id) swipeRefs.current[openSwipeId]?.close();
+    setOpenSwipeId(id);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
 
   const fetchData = async () => {
     try {
       setLoading(true);
       const data = await getIncidencias();
-      setIncidencias(data);
+      // Filtramos en el frontend según el botón seleccionado
+      const filteredData = data.filter((inc: any) => 
+        filter === "Pendientes" ? inc.estado !== "RESUELTA" : inc.estado === "RESUELTA"
+      );
+      setIncidencias(filteredData);
     } catch (error) {
       console.log(error);
     } finally {
@@ -31,64 +56,99 @@ export default function Incidencias() {
   useFocusEffect(
     useCallback(() => {
       fetchData();
-    }, [])
+    }, [filter])
   );
 
-  const handleMarcarResuelta = async (id: string) => {
+  const handleDelete = (id: string) => {
+    Alert.alert("Confirmar", "¿Eliminar esta incidencia?", [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Eliminar", style: "destructive", onPress: async () => {
+          try {
+            await eliminarIncidencia(id);
+            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            showToast("Incidencia eliminada", "success");
+            swipeRefs.current[id]?.close();
+            fetchData();
+          } catch (error) {
+            showToast("Error al eliminar", "error");
+          }
+        }
+      }
+    ]);
+  };
+
+  const handleCambiarEstado = async (item: any) => {
+    // Si ya está resuelta, evitamos que haga nada (o podrías revertirlo si lo deseas)
+    if (item.estado === "RESUELTA") return; 
+
     try {
-      await actualizarEstadoIncidencia(id, "RESUELTA");
-      
-      showToast("Incidencia marcada como resuelta", "success");
-      
-      // Actualización "optimista" de la lista local
-      setIncidencias((prev) =>
-        prev.map((inc) => (inc.id === id ? { ...inc, estado: "RESUELTA" } : inc))
-      );
-    } catch (error: any) {
-      console.error("Error detallado:", error);
-      showToast("Error al actualizar: " + error.message, "error");
+      const payload = {
+        asunto: item.asunto,
+        descripcion: item.descripcion,
+        fechaIncidencia: item.fechaIncidencia,
+        estado: "RESUELTA",
+      };
+      await actualizarEstadoIncidencia(item.id, payload);
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      showToast("Marcada como resuelta", "success");
+      fetchData(); // Recargamos para que desaparezca de "Pendientes"
+    } catch (error) {
+      showToast("Error al actualizar", "error");
     }
   };
 
   const formatDate = (dateStr: string) =>
-    new Date(dateStr).toLocaleDateString("es-ES", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric",
-    });
+    new Date(dateStr).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" });
 
   return (
     <View style={{ flex: 1 }}>
       <Header title="Incidencias" />
 
-      <ScrollView contentContainerStyle={globalStyles.container}>
+      <ScrollView
+        contentContainerStyle={globalStyles.container}
+        onScrollBeginDrag={() => { if (openSwipeId) swipeRefs.current[openSwipeId]?.close(); }}
+      >
         <View style={globalStyles.containerText}>
-          <Text style={globalStyles.containerTitle}>Incidencias Enviadas</Text>
-          <Text style={globalStyles.containerDescription}>
-            Revisa el estado de tus incidencias o marca como resueltas las pendientes.
-          </Text>
+          <Text style={globalStyles.containerTitle}>Control de Incidencias</Text>
+          <Text style={globalStyles.containerDescription}>Desliza una incidencia para editar o eliminar.</Text>
         </View>
 
-        {loading ? (
-          <ActivityIndicator color={colors.primary} />
-        ) : incidencias.length === 0 ? (
-          <Text style={{ textAlign: "center", marginTop: 20, color: colors.secondaryText }}>
-            No tienes incidencias registradas.
-          </Text>
+        <View style={styles.filterContainer}>
+          <FilterButton label="Pendientes" active={filter === "Pendientes"} onPress={() => setFilter("Pendientes")} />
+          <FilterButton label="Resueltas" position="last" active={filter === "Resueltas"} onPress={() => setFilter("Resueltas")} />
+        </View>
+
+        {loading ? <ActivityIndicator color={colors.primary} /> : incidencias.length === 0 ? (
+          <Text style={{ textAlign: "center", color: colors.secondaryText }}>No hay incidencias {filter.toLowerCase()}.</Text>
         ) : (
           <View style={styles.cards}>
             {incidencias.map((item) => (
-              <IncidenciaCard
+              <SwipeActions
                 key={item.id}
-                item={{
-                  id: item.id,
-                  asunto: item.asunto,
-                  descripcion: item.descripcion,
-                  fecha: formatDate(item.createdAt),
-                  estado: item.estado,
-                }}
-                onMarcarResuelta={handleMarcarResuelta}
-              />
+                id={item.id}
+                onOpen={handleOpenSwipe}
+                registerRef={(id, ref) => (swipeRefs.current[id] = ref)}
+                actions={[
+                  {
+                    label: "Editar", icon: "create-outline", color: colors.info,
+                    onPress: () => {
+                      swipeRefs.current[item.id]?.close();
+                      router.push(`/(modals)/crearIncidencia?id=${item.id}`);
+                    },
+                  },
+                  {
+                    label: "Eliminar", icon: "trash-outline", color: colors.error,
+                    onPress: () => handleDelete(item.id),
+                  },
+                ]}
+              >
+                <IncidenciaCard
+                  item={{ ...item, fecha: formatDate(item.fechaIncidencia) }}
+                  onPressCard={() => router.push(`/(modals)/incidencias/${item.id}`)}
+                  onPressBadge={() => handleCambiarEstado(item)}
+                />
+              </SwipeActions>
             ))}
           </View>
         )}

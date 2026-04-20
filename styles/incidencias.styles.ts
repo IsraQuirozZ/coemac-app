@@ -70,4 +70,13 @@ export const incidenciasStyles = StyleSheet.create({
   formSubtitle: { fontSize: 16, color: colors.secondaryText },
   formFields: { gap: 20 },
   textArea: { minHeight: 120, textAlignVertical: "top", fontSize: 14 },
+
+ 
+filterContainer: {
+  flexDirection: "row",
+  justifyContent: "center", 
+  alignItems: "center",
+  marginVertical: 15, 
+  paddingHorizontal: 20,
+},
 });

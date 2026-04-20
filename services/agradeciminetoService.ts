@@ -14,8 +14,24 @@ export const crearAgradecimiento = async (data: any) => {
   return apiFetch("/agradecimientos", {
     method: "POST",
     headers: {
-      "Content-Type": "application/json", 
+      "Content-Type": "application/json",
     },
     body: JSON.stringify(data),
+  });
+};
+
+export const actualizarAgradecimiento = async (id: string, data: any) => {
+  return apiFetch(`/agradecimientos/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+};
+
+export const eliminarAgradecimiento = async (id: string) => {
+  return apiFetch(`/agradecimientos/${id}`, {
+    method: "DELETE",
   });
 };

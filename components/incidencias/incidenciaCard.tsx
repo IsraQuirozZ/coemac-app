@@ -1,6 +1,8 @@
 import { incidenciasStyles as styles } from "@/styles/incidencias.styles";
 import { Text, TouchableOpacity, View } from "react-native";
+
 export type EstadoIncidencia = "PENDIENTE" | "RESUELTA";
+
 export interface IncidenciaItem {
   id: string;
   asunto: string;
@@ -11,46 +13,42 @@ export interface IncidenciaItem {
 
 interface Props {
   item: IncidenciaItem;
-  onMarcarResuelta: (id: string) => void;
+  onPressCard: () => void;   // Navega a los detalles
+  onPressBadge: () => void;  // Cambia el estado
 }
 
-export default function IncidenciaCard({ item, onMarcarResuelta }: Props) {
+export default function IncidenciaCard({ item, onPressCard, onPressBadge }: Props) {
   const esResuelta = item.estado === "RESUELTA";
-  const handlePress = () => {
-    if (!esResuelta) {
-      onMarcarResuelta(item.id);
-    }
-  };
+
   return (
     <TouchableOpacity
-      onPress={esResuelta ? undefined : handlePress}
+      onPress={onPressCard}
       style={[styles.card, { elevation: 3 }]}
-      activeOpacity={esResuelta ? 1 : 0.7}
+      activeOpacity={0.7}
     >
-      {/* Usamos el estilo para pointerEvents para evitar el Warning */}
-      <View style={{ pointerEvents: 'none' }}>
-        <View style={styles.cardHeader}>
-          <Text style={styles.cardAsunto}>
-            <Text style={styles.cardAsuntoLabel}>Asunto: </Text>
-            <Text style={styles.cardAsuntoValor}>{item.asunto}</Text>
-          </Text>
-          <View style={[
+      <View style={styles.cardHeader}>
+        <Text style={styles.cardAsunto}>
+          <Text style={styles.cardAsuntoLabel}>Asunto: </Text>
+          <Text style={styles.cardAsuntoValor}>{item.asunto}</Text>
+        </Text>
+
+        {/* AL TOCAR LA ETIQUETA RESOLVEMOS */}
+        <TouchableOpacity
+          onPress={onPressBadge}
+          activeOpacity={esResuelta ? 1 : 0.6}
+          style={[
             styles.badge,
             esResuelta ? styles.badgeResuelta : styles.badgePendiente
-          ]}>
-            
-            <Text style={styles.badgeTextPendiente}>
-                {item.estado === "RESUELTA" ? "Resuelta" : "Pendiente"}
-            </Text>
-          </View>
-
-        </View>
-        <Text style={styles.cardHora}>Fallo: {item.descripcion}</Text>
-        <Text style={styles.cardFecha}>Fecha: {item.fecha}</Text>
+          ]}
+        >
+          <Text style={styles.badgeTextPendiente}>
+            {esResuelta ? "Resuelta" : "Pendiente"}
+          </Text>
+        </TouchableOpacity>
       </View>
-
+      
+      <Text style={styles.cardHora} numberOfLines={2}>Fallo: {item.descripcion}</Text>
+      <Text style={styles.cardFecha}>Fecha: {item.fecha}</Text>
     </TouchableOpacity>
-
   );
-
 }

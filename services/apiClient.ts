@@ -1,5 +1,5 @@
-const API_URL = "http://192.168.1.156:3000/api"; // Isra
-// const API_URL = "http://192.168.0.14:3000/api"; // Cordova
+// const API_URL = "http://192.168.1.156:3000/api"; // Isra
+const API_URL = "http://192.168.0.14:3000/api"; // Cordova
 
 import { getToken } from "../storage/authStorage";
 
