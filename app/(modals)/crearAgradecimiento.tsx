@@ -3,13 +3,17 @@ import { DatePickerSheet } from "@/components/ui/DatePickerSheet";
 import FormField from "@/components/ui/FormField";
 import HandlerIndicator from "@/components/ui/HandlerIndicator";
 import { MemberSelectSheet } from "@/components/ui/MemberSelectSheet";
-import { crearAgradecimiento } from "@/services/agradeciminetoService";
+import {
+  actualizarAgradecimiento,
+  crearAgradecimiento,
+  getAgradecimientoById
+} from "@/services/agradeciminetoService"; // Asegúrate de tener estas importaciones
 import { getUsuarios } from "@/services/usuarioService";
 import { globalStyles } from "@/styles/globals.styles";
 import { colors } from "@/theme/colors";
 import { Ionicons } from "@expo/vector-icons";
 import BottomSheet from "@gorhom/bottom-sheet";
-import { useNavigation, useRouter } from "expo-router";
+import { useLocalSearchParams, useNavigation, useRouter } from "expo-router"; // Añadido useLocalSearchParams
 import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
@@ -24,23 +28,26 @@ import { useToast } from "../../hooks/useToast";
 export default function CrearAgradecimiento() {
   const [submitting, setSubmitting] = useState(false);
 
+  // ── ID DE EDICIÓN ──────────────────────────────────────────────────────────
+  const { id } = useLocalSearchParams();
+  const isEditMode = !!id;
+
   // ── Miembros ────────────────────────────────────────────────────────────────
-  const [members, setMembers]             = useState<any[]>([]);
+  const [members, setMembers] = useState<any[]>([]);
   const [selectedMember, setSelectedMember] = useState<any | null>(null);
   const memberSheetRef = useRef<BottomSheet>(null);
-  const dateSheetRef   = useRef<BottomSheet>(null);
+  const dateSheetRef = useRef<BottomSheet>(null);
 
   const [isAnySheetOpen, setIsAnySheetOpen] = useState(false);
   const navigation = useNavigation();
-  const router     = useRouter();
+  const router = useRouter();
   const { showToast } = useToast();
 
-  // Deshabilitar swipe-to-close del modal padre cuando un sheet está abierto
   useEffect(() => {
     navigation.setOptions({ gestureEnabled: !isAnySheetOpen });
   }, [isAnySheetOpen]);
 
-  // Carga los usuarios de la BD al montar
+  // Carga los usuarios de la BD
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -54,21 +61,60 @@ export default function CrearAgradecimiento() {
   }, []);
 
   const memberOptions = members.map((m) => ({
-    id:      m.id,
-    name:    `${m.nombre} ${m.apellido}`,
+    id: m.id,
+    name: `${m.nombre} ${m.apellido}`,
     company: m.empresa || "Sin empresa",
   }));
 
   // ── Form state ──────────────────────────────────────────────────────────────
   const [form, setForm] = useState({
-    miembro:          null as string | null,
+    miembro: null as string | null,
     contactoReferido: "",
-    importe:          "",
-    fechaNegocio:     new Date(),
+    importe: "",
+    fechaNegocio: new Date(),
   });
 
+  // ── LOAD DATA PARA EDICIÓN ──────────────────────────────────────────────────
+  useEffect(() => {
+    if (isEditMode) {
+      loadAgradecimiento();
+    }
+  }, [id]);
+
+  const loadAgradecimiento = async () => {
+    try {
+      setSubmitting(true);
+      const data = await getAgradecimientoById(id as string);
+      
+      setForm({
+        miembro: data.receptorId || null,
+        contactoReferido: data.nombreContacto || "",
+        importe: data.importe?.toString() || "",
+        fechaNegocio: data.fechaNegocio ? new Date(data.fechaNegocio) : new Date(),
+      });
+    } catch (error: any) {
+      showToast("Error al cargar los datos", "error");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Sincronizar el miembro seleccionado visualmente cuando cargan los datos
+  useEffect(() => {
+    if (!members.length || !form.miembro) return;
+    const member = members.find((m) => m.id === form.miembro);
+    if (member) {
+      setSelectedMember({
+        id: member.id,
+        name: `${member.nombre} ${member.apellido}`,
+        company: member.empresa || "Sin empresa",
+      });
+    }
+  }, [members, form.miembro]);
+
+  // ── Validaciones ────────────────────────────────────────────────────────────
   const [isError, setIsError] = useState(false);
-  const [errors, setErrors]   = useState({
+  const [errors, setErrors] = useState({
     miembro: "", contactoReferido: "", importe: "", fechaNegocio: "",
   });
 
@@ -78,36 +124,19 @@ export default function CrearAgradecimiento() {
 
   const validateForm = () => {
     const newErrors: any = {};
-    const nombre  = form.contactoReferido.trim();
+    const nombre = form.contactoReferido.trim();
     const importe = form.importe.trim();
-    const today   = new Date();
+    const today = new Date();
 
-    if (!form.miembro)
-      newErrors.miembro = "Debe seleccionar un miembro.";
-
-    if (!nombre)
-      newErrors.contactoReferido = "El nombre del contacto es requerido.";
-    else if (nombre.length < 3)
-      newErrors.contactoReferido = "Debe tener al menos 3 caracteres.";
-    else if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/.test(nombre))
-      newErrors.contactoReferido = "Solo puede contener letras y espacios.";
-
-    if (!importe)
-      newErrors.importe = "El importe del negocio es requerido.";
-    else if (!/^\d+([.,]\d{1,2})?$/.test(importe))
-      newErrors.importe = "Introduce un importe válido (ej: 1500 o 1500,00).";
-    else if (parseFloat(importe.replace(",", ".")) <= 0)
-      newErrors.importe = "El importe debe ser mayor que 0.";
-
-    if (!form.fechaNegocio)
-      newErrors.fechaNegocio = "La fecha del negocio es requerida.";
-    else if (form.fechaNegocio > today)
-      newErrors.fechaNegocio = "La fecha del negocio no puede ser futura.";
-
+    if (!form.miembro) newErrors.miembro = "Debe seleccionar un miembro.";
+    if (!nombre) newErrors.contactoReferido = "El nombre del contacto es requerido.";
+    if (!importe) newErrors.importe = "El importe es requerido.";
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  // ── SUBMIT (CREAR O ACTUALIZAR) ────────────────────────────────────────────
   const handleSubmit = async () => {
     const isValid = validateForm();
     if (!isValid) { setIsError(true); return; }
@@ -115,17 +144,24 @@ export default function CrearAgradecimiento() {
     try {
       setSubmitting(true);
 
-      await crearAgradecimiento({
-        receptorId:     form.miembro,
+      const payload = {
+        receptorId: form.miembro,
         nombreContacto: form.contactoReferido,
-        importe:        parseFloat(form.importe.replace(",", ".")),
-        fechaNegocio:   form.fechaNegocio.toISOString(),
-      });
+        importe: parseFloat(form.importe.replace(",", ".")),
+        fechaNegocio: form.fechaNegocio.toISOString(),
+      };
 
-      showToast("Agradecimiento registrado", "success");
+      if (isEditMode) {
+        await actualizarAgradecimiento(id as string, payload);
+        showToast("Agradecimiento actualizado", "success");
+      } else {
+        await crearAgradecimiento({ ...payload, referenciaId: null });
+        showToast("Agradecimiento registrado", "success");
+      }
+
       router.back();
     } catch (error: any) {
-      showToast(error.message || "Error al crear el agradecimiento", "error");
+      showToast(error.message || "Error al procesar", "error");
     } finally {
       setSubmitting(false);
     }
@@ -137,19 +173,20 @@ export default function CrearAgradecimiento() {
       <KeyboardAwareScrollView
         contentContainerStyle={globalStyles.formContainer}
         keyboardShouldPersistTaps="handled"
-        extraScrollHeight={30}
-        enableOnAndroid={true}
-        keyboardDismissMode="on-drag"
       >
         <View style={globalStyles.containerText}>
-          <Text style={globalStyles.containerTitle}>Gracias Negocio Cerrado</Text>
+          <Text style={globalStyles.containerTitle}>
+            {isEditMode ? "Editar Agradecimiento" : "Gracias Negocio Cerrado"}
+          </Text>
           <Text style={globalStyles.containerDescription}>
-            Agradece por el negocio que has cerrado con el contacto referido.
+            {isEditMode 
+              ? "Modifica los detalles del negocio cerrado."
+              : "Agradece por el negocio que has cerrado con el contacto referido."}
           </Text>
         </View>
 
         <View style={globalStyles.formFields}>
-          {/* ── Gracias a ── */}
+          {/* FormFields (Miembro, Contacto, Importe, Fecha) se quedan igual */}
           <FormField label="Gracias a" icon="megaphone" error={errors.miembro}>
             <TouchableOpacity onPress={() => memberSheetRef.current?.snapToIndex(0)}>
               <View style={globalStyles.formSelectContainer}>
@@ -161,7 +198,6 @@ export default function CrearAgradecimiento() {
             </TouchableOpacity>
           </FormField>
 
-          {/* ── Contacto referido ── */}
           <FormField label="Por la referencia de (contacto)" icon="person-sharp" error={errors.contactoReferido}>
             <TextInput
               placeholder="Nombre del contacto referido"
@@ -171,7 +207,6 @@ export default function CrearAgradecimiento() {
             />
           </FormField>
 
-          {/* ── Importe ── */}
           <FormField label="Importe del negocio (€)" icon="logo-usd" error={errors.importe}>
             <TextInput
               placeholder="0.00"
@@ -182,7 +217,6 @@ export default function CrearAgradecimiento() {
             />
           </FormField>
 
-          {/* ── Fecha ── */}
           <FormField label="Fecha del negocio cerrado" icon="calendar-clear" error={errors.fechaNegocio}>
             <TouchableOpacity onPress={() => dateSheetRef.current?.snapToIndex(0)}>
               <Text>
@@ -194,17 +228,11 @@ export default function CrearAgradecimiento() {
           </FormField>
         </View>
 
-        {isError && (
-  <Text style={{ color: colors.error, textAlign: "center", marginTop: 10 }}>
-    {Object.values(errors).find(msg => msg !== "") || "Revisa los campos del formulario"}
-  </Text>
-)}
-
         {submitting ? (
-          <ActivityIndicator color={colors.primary} />
+          <ActivityIndicator color={colors.primary} style={{ marginTop: 20 }} />
         ) : (
           <Button
-            label="Enviar Agradecimiento"
+            label={isEditMode ? "Actualizar Agradecimiento" : "Enviar Agradecimiento"}
             variant="primary"
             onPress={handleSubmit}
             disabled={submitting}
@@ -212,6 +240,7 @@ export default function CrearAgradecimiento() {
         )}
       </KeyboardAwareScrollView>
 
+      {/* Sheets se quedan igual */}
       <MemberSelectSheet
         ref={memberSheetRef}
         options={memberOptions}

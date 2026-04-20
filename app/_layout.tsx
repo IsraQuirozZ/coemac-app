@@ -80,6 +80,14 @@ export default function RootLayout() {
               name="(modals)/reuniones/[id]"
               options={{ presentation: "modal", gestureEnabled: true }}
             />
+             <Stack.Screen
+              name="(modals)/agradecimientos/[id]"
+              options={{ presentation: "modal", gestureEnabled: true }} 
+            />
+            <Stack.Screen
+              name="(modals)/incidencias/[id]"
+              options={{ presentation: "modal", gestureEnabled: true }}
+            />
           </Stack>
         </ToastProvider>
       </AuthProvider>
