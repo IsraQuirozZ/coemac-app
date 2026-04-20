@@ -20,11 +20,15 @@ import {
 } from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useToast } from "../../hooks/useToast";
-import { crearReunion, getReunionById } from "../../services/reunionService";
+import {
+  crearReunion,
+  getReunionById,
+  updateReunion,
+} from "../../services/reunionService";
 
 export default function CrearReunion() {
-  const { showToast } = useToast();
   const router = useRouter();
+  const { showToast } = useToast();
   const navigation = useNavigation();
 
   // MODALS (MEMBER SELECT & DATEPICKER)
@@ -110,6 +114,7 @@ export default function CrearReunion() {
     }
   }, [members, form.invitadoId]);
 
+  // VALIDATIONS
   const [isError, setIsError] = useState(false);
   const [errors, setErrors] = useState({
     invitadoId: "",
@@ -181,13 +186,16 @@ export default function CrearReunion() {
       if (form.invitadoId !== originalReunion?.invitadoId) {
         payload.invitadoId = form.invitadoId;
       }
-      if (form.descripcion !== originalReunion?.descripcion) {
-        payload.descripcion = form.descripcion.trim();
+
+      const descripcion = form.descripcion.trim();
+
+      if (descripcion && descripcion !== originalReunion?.descripcion) {
+        payload.descripcion = descripcion;
       }
 
       if (isEditMode) {
-        // Aún no hay endpoint de edición, así que por ahora solo mostramos un mensaje
-        showToast("Funcionalidad de edición no implementada aún");
+        await updateReunion(id as string, payload);
+        showToast("Reunión actualizada", "success");
       } else {
         await crearReunion(payload);
         showToast("Reunión registrada", "success");
@@ -195,7 +203,13 @@ export default function CrearReunion() {
 
       router.back();
     } catch (error: any) {
-      Alert.alert("Error", error.message || "Error al registrar la reunión");
+      Alert.alert(
+        "Error",
+        error.message ||
+          (isEditMode
+            ? "Error al actualizar la reunión"
+            : "Error al registrar la reunión"),
+      );
     } finally {
       setSubmitting(false);
     }

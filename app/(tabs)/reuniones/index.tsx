@@ -2,27 +2,51 @@ import Header from "@/components/layout/Header";
 import ReunionCard from "@/components/reuniones/reunionCard";
 import Button from "@/components/ui/Button";
 import FilterButton from "@/components/ui/FilterButton";
-import { getReuniones } from "@/services/reunionService";
+import SwipeActions from "@/components/ui/SwipeActions";
+import { deleteReunion, getReuniones } from "@/services/reunionService";
 import { globalStyles } from "@/styles/globals.styles";
 import { reunionesStyles as styles } from "@/styles/reuniones.styles";
 import { colors } from "@/theme/colors";
+import * as Haptics from "expo-haptics";
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   ScrollView,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { Swipeable } from "react-native-gesture-handler";
+
+import { useToast } from "@/hooks/useToast";
 
 export default function Reuniones() {
+  const { showToast } = useToast();
   const [loading, setLoading] = useState(true);
 
   const router = useRouter();
 
   // TOGGLE DE DESCRIPCIÓN EN CARD
   const [openCardId, setOpenCardId] = useState<string | null>(null);
+
+  // SWIPEABLE
+  const swipeRefs = useRef<{ [key: string]: Swipeable | null }>({});
+  const [openSwipeId, setOpenSwipeId] = useState<string | null>(null);
+
+  const handleOpenSwipe = (id: string) => {
+    if (openSwipeId && openSwipeId !== id) {
+      swipeRefs.current[openSwipeId]?.close();
+    }
+
+    setOpenSwipeId(id);
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
+  const registerSwipeRef = (id: string, ref: Swipeable | null) => {
+    swipeRefs.current[id] = ref;
+  };
 
   // FETCH REUNIONES
   const [reuniones, setReuniones] = useState<any[]>([]);
@@ -86,8 +110,8 @@ export default function Reuniones() {
       nombre: `${member.nombre}`,
       apellido: `${member.apellido}`,
       empresa: member.empresa || "",
-      descripcion: item.descripcion,
-
+      descripcion: item.descripcion || "",
+      estado: item.estado,
       viewed: isReceived ? !!item.viewedAt : true,
     };
   };
@@ -99,6 +123,43 @@ export default function Reuniones() {
       fetchData(1, false);
     }, [direccion]),
   );
+
+  // DELETE SWIPEABLE
+  // DELETE
+  const handleDelete = (id: string) => {
+    Alert.alert(
+      "Confirmar eliminación",
+      "¿Estás seguro de que deseas eliminar esta reunión?",
+      [
+        { text: "Cancelar", style: "cancel" },
+        {
+          text: "Eliminar",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              await deleteReunion(id);
+
+              Haptics.notificationAsync(
+                Haptics.NotificationFeedbackType.Success,
+              );
+
+              showToast("Reunión eliminada", "success");
+              swipeRefs.current[id]?.close();
+              fetchData(1, false);
+            } catch (error) {
+              if (error instanceof Error) {
+                Haptics.notificationAsync(
+                  Haptics.NotificationFeedbackType.Error,
+                );
+
+                showToast(`${error.message}`, "error");
+              }
+            }
+          },
+        },
+      ],
+    );
+  };
 
   return (
     <View style={{ flex: 1 }}>
@@ -142,8 +203,8 @@ export default function Reuniones() {
             {reuniones.map((item) => {
               const mapped = mapReunionToCard(item);
 
-              // const isReceived = direccion === "Recibidas";
-              // const isViewed = !!item.viewedAt;
+              const isReceived = direccion === "Recibidas";
+              const isEditable = item.estado === "PENDIENTE";
 
               const card = (
                 <TouchableOpacity
@@ -153,9 +214,55 @@ export default function Reuniones() {
                 </TouchableOpacity>
               );
 
+              if (!isReceived && isEditable) {
+                return (
+                  <SwipeActions
+                    key={item.id}
+                    id={item.id}
+                    onOpen={handleOpenSwipe}
+                    registerRef={registerSwipeRef}
+                    actions={[
+                      {
+                        label: "Editar",
+                        icon: "create-outline",
+                        color: colors.info,
+                        onPress: () => {
+                          Haptics.impactAsync(
+                            Haptics.ImpactFeedbackStyle.Medium,
+                          );
+
+                          swipeRefs.current[item.id]?.close();
+                          router.push(`/(modals)/crearReunion?id=${item.id}`);
+                        },
+                      },
+                      {
+                        label: "Eliminar",
+                        icon: "trash-outline",
+                        color: colors.error,
+                        onPress: () => {
+                          Haptics.impactAsync(
+                            Haptics.ImpactFeedbackStyle.Medium,
+                          );
+
+                          handleDelete(item.id);
+                        },
+                      },
+                    ]}
+                  >
+                    {card}
+                  </SwipeActions>
+                );
+              }
+
               return <View key={item.id}>{card}</View>;
             })}
           </View>
+        )}
+        {loadingMore && (
+          <ActivityIndicator
+            style={{ marginVertical: 20 }}
+            color={colors.primary}
+          />
         )}
       </ScrollView>
 

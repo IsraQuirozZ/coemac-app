@@ -13,6 +13,7 @@ export interface ReunionItem {
   dia: string;
   mes: string;
   descripcion: string;
+  estado: string;
   viewed: boolean;
 }
 
@@ -22,6 +23,12 @@ interface Props {
 
 export default function ReunionCard({ item }: Props) {
   const opacity = useRef(new Animated.Value(1)).current;
+  const estadoColor =
+    item.estado === "PENDIENTE"
+      ? colors.terciaryText
+      : item.estado === "REALIZADA"
+        ? colors.successLight
+        : colors.error;
 
   useEffect(() => {
     if (item.viewed) return;
@@ -78,13 +85,17 @@ export default function ReunionCard({ item }: Props) {
               </Text>
             </Text>
             <Text style={styles.cardDesc} numberOfLines={1}>
-              {truncatedDescription}
+              {truncatedDescription || "Sin descripción"}
             </Text>
           </View>
         </View>
 
-        {!item.viewed && (
+        {!item.viewed ? (
           <Animated.View style={[styles.viewedDot, { opacity }]} />
+        ) : (
+          <View style={[styles.badge, { backgroundColor: estadoColor }]}>
+            <Text style={styles.badgeText}>{item.estado}</Text>
+          </View>
         )}
       </View>
     </View>
@@ -181,5 +192,22 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginTop: 8,
     color: colors.secondaryText,
+  },
+  badge: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    backgroundColor: colors.warning,
+    color: "white",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+    fontSize: 10,
+    fontWeight: "600",
+  },
+  badgeText: {
+    color: "white",
+    fontSize: 10,
+    fontWeight: "600",
   },
 });
