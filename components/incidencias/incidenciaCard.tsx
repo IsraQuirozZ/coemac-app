@@ -1,60 +1,54 @@
 import { incidenciasStyles as styles } from "@/styles/incidencias.styles";
-import { Text, View } from "react-native";
+import { Text, TouchableOpacity, View } from "react-native";
 
-const DESCRIPTION_PREVIEW_LENGTH = 40;
-
-export type EstadoIncidencia = "Pendiente" | "Resuelta";
+export type EstadoIncidencia = "PENDIENTE" | "RESUELTA";
 
 export interface IncidenciaItem {
   id: string;
   asunto: string;
-  fallo: string;
+  descripcion: string;
   fecha: string;
   estado: EstadoIncidencia;
 }
 
 interface Props {
   item: IncidenciaItem;
+  onPressCard: () => void;   // Navega a los detalles
+  onPressBadge: () => void;  // Cambia el estado
 }
 
-export default function IncidenciaCard({ item }: Props) {
-  const esResuelta = item.estado === "Resuelta";
-  const truncatedFallo =
-    item.fallo.length > DESCRIPTION_PREVIEW_LENGTH
-      ? `${item.fallo.slice(0, DESCRIPTION_PREVIEW_LENGTH).trimEnd()}...`
-      : item.fallo;
+export default function IncidenciaCard({ item, onPressCard, onPressBadge }: Props) {
+  const esResuelta = item.estado === "RESUELTA";
 
   return (
-    <View style={styles.card}>
-      {/* Fila superior: asunto + badge estado */}
+    <TouchableOpacity
+      onPress={onPressCard}
+      style={[styles.card, { elevation: 3 }]}
+      activeOpacity={0.7}
+    >
       <View style={styles.cardHeader}>
-        <Text style={styles.cardAsunto} numberOfLines={1}>
+        <Text style={styles.cardAsunto}>
           <Text style={styles.cardAsuntoLabel}>Asunto: </Text>
           <Text style={styles.cardAsuntoValor}>{item.asunto}</Text>
         </Text>
-        <View
+
+        {/* AL TOCAR LA ETIQUETA RESOLVEMOS */}
+        <TouchableOpacity
+          onPress={onPressBadge}
+          activeOpacity={esResuelta ? 1 : 0.6}
           style={[
             styles.badge,
-            esResuelta ? styles.badgeResuelta : styles.badgePendiente,
+            esResuelta ? styles.badgeResuelta : styles.badgePendiente
           ]}
         >
-          <Text
-            style={
-              esResuelta ? styles.badgeTextResuelta : styles.badgeTextPendiente
-            }
-          >
-            {item.estado}
+          <Text style={styles.badgeTextPendiente}>
+            {esResuelta ? "Resuelta" : "Pendiente"}
           </Text>
-        </View>
+        </TouchableOpacity>
       </View>
-
-      {/* Fallo */}
-      <Text style={styles.cardHora} numberOfLines={1}>
-        Fallo: {truncatedFallo}
-      </Text>
-
-      {/* Fecha */}
+      
+      <Text style={styles.cardHora} numberOfLines={2}>Fallo: {item.descripcion}</Text>
       <Text style={styles.cardFecha}>Fecha: {item.fecha}</Text>
-    </View>
+    </TouchableOpacity>
   );
 }
