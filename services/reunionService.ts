@@ -19,6 +19,13 @@ export const crearReunion = async (data: any) => {
   });
 };
 
+export const updateReunion = async (id: string, data: any) => {
+  return apiFetch(`/reuniones/${id}`, {
+    method: "PATCH",
+    body: JSON.stringify(data),
+  });
+};
+
 export const markReunionAsViewed = async (id: string) => {
   return apiFetch(`/reuniones/${id}/viewed`, {
     method: "PATCH",

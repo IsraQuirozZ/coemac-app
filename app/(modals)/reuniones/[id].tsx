@@ -75,6 +75,9 @@ export default function ReunionDetail() {
 
   useFocusEffect(
     useCallback(() => {
+      setExpanded(false);
+      setShowMore(false);
+      setMeasured(false);
       fetchReunion();
     }, [id]),
   );
