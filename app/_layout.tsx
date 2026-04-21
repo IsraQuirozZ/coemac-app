@@ -5,7 +5,6 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AuthProvider, useAuth } from "../context/AuthContext";
 import { colors } from "../theme/colors";
 
-// 🔥 Componente que protege rutas
 function AuthGate() {
   const { token, loading } = useAuth();
   const segments = useSegments();
@@ -14,30 +13,29 @@ function AuthGate() {
   useEffect(() => {
     if (loading) return;
 
-    const inAuthScreen = segments[0] === "login" || segments[0] === "register";
+    //EVITA PANTALLA EN BLANCO
+    if (!segments.length) return;
 
-    // ❌ No autenticado → fuera de login/register
+    const inAuthScreen =
+      segments[0] === "login" || segments[0] === "register";
+
     if (!token && !inAuthScreen) {
       router.replace("/login");
     }
 
-    // ✅ Autenticado → evitar volver a login
     if (token && inAuthScreen) {
       router.replace("/(tabs)/dashboard");
     }
   }, [token, loading, segments]);
 
-  return null;
+  return <></>;
 }
 
 export default function RootLayout() {
   return (
-    <GestureHandlerRootView
-      style={{ flex: 1, backgroundColor: colors.background }}
-    >
+    <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.background }}>
       <AuthProvider>
         <ToastProvider>
-          {/* 🔥 Aquí controlamos acceso */}
           <AuthGate />
 
           <Stack
@@ -48,46 +46,18 @@ export default function RootLayout() {
           >
             <Stack.Screen name="login" />
             <Stack.Screen name="register" />
-
             <Stack.Screen name="(tabs)" />
 
-            {/* Modales */}
-            <Stack.Screen
-              name="(modals)/crearReferencia"
-              options={{ presentation: "modal" }}
-            />
-            <Stack.Screen
-              name="(modals)/crearAgradecimiento"
-              options={{ presentation: "modal" }}
-            />
-            <Stack.Screen
-              name="(modals)/envioAgradecimiento"
-              options={{ presentation: "modal" }}
-            />
-            <Stack.Screen
-              name="(modals)/crearReunion"
-              options={{ presentation: "modal" }}
-            />
-            <Stack.Screen
-              name="(modals)/crearIncidencia"
-              options={{ presentation: "modal" }}
-            />
-            <Stack.Screen
-              name="(modals)/referencias/[id]"
-              options={{ presentation: "modal", gestureEnabled: true }}
-            />
-            <Stack.Screen
-              name="(modals)/reuniones/[id]"
-              options={{ presentation: "modal", gestureEnabled: true }}
-            />
-             <Stack.Screen
-              name="(modals)/agradecimientos/[id]"
-              options={{ presentation: "modal", gestureEnabled: true }} 
-            />
-            <Stack.Screen
-              name="(modals)/incidencias/[id]"
-              options={{ presentation: "modal", gestureEnabled: true }}
-            />
+            <Stack.Screen name="(modals)/crearReferencia" options={{ presentation: "modal" }} />
+            <Stack.Screen name="(modals)/crearAgradecimiento" options={{ presentation: "modal" }} />
+            <Stack.Screen name="(modals)/envioAgradecimiento" options={{ presentation: "modal" }} />
+            <Stack.Screen name="(modals)/crearReunion" options={{ presentation: "modal" }} />
+            <Stack.Screen name="(modals)/crearIncidencia" options={{ presentation: "modal" }} />
+
+            <Stack.Screen name="(modals)/referencias/[id]" options={{ presentation: "modal" }} />
+            <Stack.Screen name="(modals)/reuniones/[id]" options={{ presentation: "modal" }} />
+            <Stack.Screen name="(modals)/agradecimientos/[id]" options={{ presentation: "modal" }} />
+            <Stack.Screen name="(modals)/incidencias/[id]" options={{ presentation: "modal" }} />
           </Stack>
         </ToastProvider>
       </AuthProvider>

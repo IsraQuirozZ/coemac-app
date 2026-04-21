@@ -1,7 +1,11 @@
 import { apiFetch } from "./apiClient";
 
-export const getAgradecimientos = async (filters = {}) => {
-  const query = new URLSearchParams(filters as Record<string, string>).toString();
+export const getAgradecimientos = async (filters: Record<string, string> = {}) => {
+  // Elimina valores undefined/null/vacíos para no mandar params sucios
+  const clean = Object.fromEntries(
+    Object.entries(filters).filter(([_, v]) => v !== undefined && v !== null && v !== "")
+  );
+  const query = new URLSearchParams(clean).toString();
   const url = query ? `/agradecimientos?${query}` : "/agradecimientos";
   return apiFetch(url);
 };
@@ -13,9 +17,6 @@ export const getAgradecimientoById = async (id: string) => {
 export const crearAgradecimiento = async (data: any) => {
   return apiFetch("/agradecimientos", {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify(data),
   });
 };
@@ -23,9 +24,6 @@ export const crearAgradecimiento = async (data: any) => {
 export const actualizarAgradecimiento = async (id: string, data: any) => {
   return apiFetch(`/agradecimientos/${id}`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-    },
     body: JSON.stringify(data),
   });
 };
