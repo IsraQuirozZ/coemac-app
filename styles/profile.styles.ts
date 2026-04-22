@@ -5,6 +5,7 @@ export const profileStyles = StyleSheet.create({
   profileHeader: {
     alignItems: "center",
     gap: 10,
+    marginBottom: 20,
   },
   profileAvatarContainer: {
     position: "relative",
@@ -63,9 +64,41 @@ export const profileStyles = StyleSheet.create({
   },
   profileCards: {
     gap: 20,
+    marginBottom: 30,
+  },
+  // Estilos específicos para la ProfileCard
+  profileCard: {
+    backgroundColor: colors.background,
+    borderRadius: 10,
+    padding: 15,
+    gap: 8,
+    borderColor: colors.border,
+    borderWidth: 1,
+    shadowColor: "#000",
+    shadowOpacity: 0.04,
+    shadowOffset: { width: 0, height: 1 },
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  profileCardTop: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
+  },
+  profileCardTitle: {
+    fontSize: 16,
+    fontWeight: "500",
+    color: colors.primary,
+  },
+  profileCardValue: {
+    fontSize: 14,
+    color: colors.secondaryText,
+    marginLeft: 30, // Alineación con el texto superior
   },
   errorText: {
     color: colors.error,
+    textAlign: 'center',
+    marginBottom: 10,
   },
   nameInput: {
     fontSize: 18,

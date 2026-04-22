@@ -1,398 +1,170 @@
 import Header from "@/components/layout/Header";
 import ProfileCard from "@/components/profile/ProfileCard";
 import Badge from "@/components/ui/Badge";
+import Button from "@/components/ui/Button";
 import { DatePickerSheet } from "@/components/ui/DatePickerSheet";
 import FormField from "@/components/ui/FormField";
 import { useToast } from "@/hooks/useToast";
+import { getProfile, updateProfile } from "@/services/profileService";
 import { globalStyles } from "@/styles/globals.styles";
+import { profileStyles as styles } from "@/styles/profile.styles";
 import { colors } from "@/theme/colors";
-import { Ionicons } from "@expo/vector-icons";
 import BottomSheet from "@gorhom/bottom-sheet";
 import { useNavigation } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
-  Pressable,
+  ActivityIndicator,
   ScrollView,
   Text,
   TextInput,
-  TouchableOpacity,
-  View,
+  View
 } from "react-native";
-import Button from "../../components/ui/Button";
 import { useAuth } from "../../context/AuthContext";
-import { profileStyles as styles } from "../../styles/profile.styles";
 
 export default function Profile() {
   const { showToast } = useToast();
-
-  // MODAL DATEPICKER
-  const dateSheetRef = useRef<BottomSheet>(null);
+  const { logout }    = useAuth();
+  const navigation    = useNavigation();
+  const dateSheetRef  = useRef<BottomSheet>(null);
 
   const [isAnySheetOpen, setIsAnySheetOpen] = useState(false);
-  const navigation = useNavigation();
+  const [loading, setLoading]               = useState(true);
+  const [isEditing, setIsEditing]           = useState(false);
+  const [isSubmitting, setIsSubmitting]     = useState(false);
+  const [isError, setIsError]               = useState(false);
 
-  const user = {
-    name: "Israel Quiroz",
-    username: "israqzz",
-    speciality: "Desarrollador Web",
-    birthdate: new Date(2001, 4, 28),
-    phone: "341234567890",
-  };
-
-  // FORM PARA EL NOMBRE
-  const [name, setName] = useState(user.name);
-  const [savedName, setSavedName] = useState(user.name);
-  const [isEditingName, setIsEditingName] = useState(false);
-  const [nameError, setNameError] = useState("");
-
-  const validateName = () => {
-    const trimmed = name.trim();
-    const nameRegex = /^[a-zA-Z\s]+$/;
-
-    if (!trimmed) {
-      setNameError("El nombre es requerido.");
-      return false;
-    }
-
-    if (trimmed.length < 3 || trimmed.length > 30) {
-      setNameError("El nombre debe tener entre 3 y 30 caracteres.");
-      return false;
-    }
-
-    if (!nameRegex.test(trimmed)) {
-      setNameError("El nombre solo puede contener letras y espacios.");
-      return false;
-    }
-
-    setNameError("");
-    return true;
-  };
-
-  const handleSaveName = () => {
-    if (!validateName()) return;
-
-    setSavedName(name.trim());
-    setIsEditingName(false);
-    showToast("Nombre actualizado");
-  };
-
-  const handleCancelName = () => {
-    setName(savedName);
-    setIsEditingName(false);
-    setNameError("");
-  };
-
-  // VALIDACION RESTO DE FORMULARIO
-  const [date, setDate] = useState(user.birthdate);
-  const [isEditing, setIsEditing] = useState(false);
   const [form, setForm] = useState({
-    username: user.username,
-    speciality: user.speciality,
-    birthdate: user.birthdate,
-    phone: user.phone,
+    nombre: "", apellido: "", username: "",
+    empresa: "", telefono: "", fechaNacimiento: new Date(),
   });
   const [saved, setSaved] = useState({ ...form });
+  const [date,  setDate]  = useState(new Date());
 
-  const [isError, setIsError] = useState(false);
   const [errors, setErrors] = useState({
-    name: "",
-    username: "",
-    speciality: "",
-    birthdate: "",
-    phone: "",
+    nombre: "", apellido: "", username: "",
+    empresa: "", telefono: "", fechaNacimiento: "",
   });
 
+  useEffect(() => {
+    (async () => {
+      try {
+        const data = await getProfile();
+        const initial = {
+          nombre:          data.nombre          || "",
+          apellido:        data.apellido        || "",
+          username:        data.username        || "",
+          empresa:         data.empresa         || "",
+          telefono:        data.telefono        || "",
+          fechaNacimiento: data.fechaNacimiento ? new Date(data.fechaNacimiento) : new Date(),
+        };
+        setForm(initial);
+        setSaved(initial);
+        setDate(initial.fechaNacimiento);
+      } catch {
+        showToast("Error cargando el perfil", "error");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []);
+
   const validateForm = () => {
-    let newErrors: any = {};
-
-    const username = form.username.trim();
-    const speciality = form.speciality.trim();
-    const birthdate = form.birthdate;
-    const today = new Date();
-    const phone = form.phone.trim();
-
-    const usernameRegex = /^[a-zA-Z0-9_]+$/; // Solo letras, números y guiones bajos
-    const phoneRegex = /^\d{9,12}$/;
-    const specialityRegex = /^[a-zA-Z\s]+$/; // Solo letras y espacios
-
-    if (!username) {
-      newErrors.username = "El username es requerido.";
-    } else if (username.length < 3 || username.length > 20) {
-      newErrors.username = "El username debe tener entre 3 y 20 caracteres.";
-    } else if (!usernameRegex.test(username)) {
-      newErrors.username =
-        "El username solo puede contener letras, números y guiones bajos.";
-    }
-
-    if (!speciality) {
-      newErrors.speciality = "La especialidad es requerida.";
-    } else if (speciality.length < 3 || speciality.length > 20) {
-      newErrors.speciality =
-        "La especialidad debe tener entre 3 y 20 caracteres.";
-    } else if (!specialityRegex.test(speciality)) {
-      newErrors.speciality =
-        "La especialidad solo puede contener letras y espacios.";
-    }
-
-    if (!birthdate) {
-      newErrors.birthdate = "La fecha de nacimiento es requerida.";
-    } else if (birthdate > today) {
-      newErrors.birthdate = "La fecha de nacimiento no puede ser en el futuro.";
-    }
-
-    if (!phone) {
-      newErrors.phone = "El teléfono es requerido.";
-    } else if (!phoneRegex.test(phone)) {
-      newErrors.phone =
-        "El teléfono debe ser un número válido con 9 a 12 dígitos.";
-    }
-
+    const newErrors: any = {};
+    if (!form.nombre.trim()) newErrors.nombre = "Requerido";
+    if (!form.apellido.trim()) newErrors.apellido = "Requerido";
+    if (!form.username.trim()) newErrors.username = "Requerido";
     setErrors(newErrors);
-
     return Object.keys(newErrors).length === 0;
   };
 
-  const clearError = (field: keyof typeof errors) => {
-    if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: "" }));
+  const handleSave = async () => {
+    if (!validateForm()) { setIsError(true); return; }
+    setIsSubmitting(true);
+    try {
+      const updated = await updateProfile({
+        ...form,
+        fechaNacimiento: form.fechaNacimiento.toISOString(),
+      });
+      setSaved({ ...form });
+      setIsEditing(false);
+      showToast("Perfil actualizado", "success");
+    } catch (e: any) {
+      showToast(e.message || "Error", "error");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  const handleSave = () => {
-    const isValid = validateForm();
+  const initials = `${saved.nombre} ${saved.apellido}`.split(" ").map(n => n[0]).join("").toUpperCase();
 
-    if (!isValid) {
-      setIsError(true);
-      return;
-    }
-    setIsError(false);
-    showToast("Perfil actualizado");
-    setSaved({ ...form });
-    setIsEditing(false);
-  };
-
-  const handleCancel = () => {
-    setForm({ ...saved });
-    setIsEditing(false);
-  };
-
-  useEffect(() => {
-    navigation.setOptions({
-      gestureEnabled: !isAnySheetOpen,
-      tabBarStyle: isEditing
-        ? { display: "none" }
-        : {
-            height: 90,
-            borderTopLeftRadius: 40,
-            borderTopRightRadius: 40,
-            shadowColor: "#00000080",
-            shadowOffset: { width: 0, height: -2 },
-            shadowOpacity: 0.1,
-            shadowRadius: 3,
-            elevation: 5,
-            paddingHorizontal: 10,
-            paddingTop: 12,
-            flexDirection: "row",
-          },
-    });
-  }, [isAnySheetOpen, isEditing]);
-
-  // LOGOUT
-  const { logout } = useAuth();
+  if (loading) return <View style={globalStyles.container}><ActivityIndicator size="large" color={colors.primary} /></View>;
 
   return (
-    <View style={{ flex: 1 }}>
-      <Header title="Perfil de Usuario"></Header>
-      <ScrollView
-        contentContainerStyle={[globalStyles.container]}
-        keyboardShouldPersistTaps="handled"
-        keyboardDismissMode="on-drag"
-      >
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <Header title="Perfil" />
+      <ScrollView contentContainerStyle={[globalStyles.container, { paddingBottom: 40 }]}>
+        
+        {/* Avatar Header */}
         <View style={styles.profileHeader}>
-          <Pressable
-            style={styles.profileAvatarContainer}
-            onPress={() => console.log("Editar avatar")}
-          >
-            <View style={styles.profileAvatar}>
-              <Text style={styles.profileAvatarText}>
-                {savedName
-                  .split(" ")
-                  .slice(0, 2)
-                  .map((word) => word[0])
-                  .join("")
-                  .toUpperCase()}
-              </Text>
-            </View>
-            {/* <View style={styles.avatarEditIcon}>
-              <Ionicons name="pencil" size={15} color="white" />
-            </View> */}
-          </Pressable>
-          <View style={styles.nameContainer}>
-            {isEditingName ? (
-              <View style={{ flex: 1 }}>
-                <TextInput
-                  value={name}
-                  onChangeText={(val) => {
-                    setName(val);
-                    if (nameError) setNameError("");
-                  }}
-                  style={styles.nameInput}
-                  autoFocus
-                />
-
-                {nameError ? (
-                  <Text style={styles.errorText}>{nameError}</Text>
-                ) : null}
-
-                <View style={styles.nameButtonsContainer}>
-                  <Button label="Guardar" onPress={handleSaveName} />
-                  <Button label="Cancelar" onPress={handleCancelName} />
-                </View>
-              </View>
-            ) : (
-              <>
-                <Text style={styles.nameText}>{savedName}</Text>
-                <Pressable
-                  style={styles.nameEditIcon}
-                  onPress={() => setIsEditingName(true)}
-                >
-                  <Ionicons name="pencil" size={15} color="white" />
-                </Pressable>
-              </>
-            )}
-          </View>
+          <View style={styles.profileAvatar}><Text style={styles.profileAvatarText}>{initials}</Text></View>
+          <Text style={styles.nameText}>{saved.nombre} {saved.apellido}</Text>
           <Text style={styles.userName}>@{saved.username}</Text>
-          <Badge
-            text={saved.speciality}
-            backgroundColor={colors.soft}
-            textColor={colors.primary}
-          />
+          {saved.empresa && <Badge text={saved.empresa} backgroundColor={colors.soft} textColor={colors.primary} />}
         </View>
 
         <View style={styles.profileCards}>
           {isEditing ? (
             <>
-              <FormField
-                label="Username"
-                icon="person-outline"
-                error={errors.username}
-              >
-                <TextInput
-                  value={form.username}
-                  onChangeText={(val) => {
-                    setForm({ ...form, username: val });
-                    clearError("username");
-                  }}
-                  autoCapitalize="none"
-                  placeholder="Username"
-                />
+              <FormField label="Nombre" icon="person-outline" error={errors.nombre}>
+                <TextInput value={form.nombre} onChangeText={(v) => setForm({...form, nombre: v})} />
               </FormField>
-              <FormField
-                label="Especialidad"
-                icon="briefcase-outline"
-                error={errors.speciality}
-              >
-                <TextInput
-                  value={form.speciality}
-                  onChangeText={(val) => {
-                    setForm({ ...form, speciality: val });
-                    clearError("speciality");
-                  }}
-                  placeholder="Especialidad"
-                />
+              <FormField label="Apellido" icon="person-outline" error={errors.apellido}>
+                <TextInput value={form.apellido} onChangeText={(v) => setForm({...form, apellido: v})} />
               </FormField>
-              <FormField
-                label="Fecha de nacimiento"
-                icon="calendar-clear"
-                error={errors.birthdate}
-              >
-                <TouchableOpacity
-                  onPress={() => {
-                    dateSheetRef.current?.snapToIndex(0);
-                  }}
-                >
-                  <Text>
-                    {date.toLocaleDateString("es-ES", {
-                      day: "numeric",
-                      month: "short",
-                      year: "numeric",
-                    })}
-                  </Text>
-                </TouchableOpacity>
+              <FormField label="Username" icon="at-outline" error={errors.username}>
+                <TextInput value={form.username} onChangeText={(v) => setForm({...form, username: v})} autoCapitalize="none" />
               </FormField>
-              <FormField
-                label="Teléfono"
-                icon="call-outline"
-                error={errors.phone}
-              >
-                <TextInput
-                  value={form.phone}
-                  onChangeText={(val) => {
-                    setForm({ ...form, phone: val });
-                    clearError("phone");
-                  }}
-                  placeholder="+34 000 000 000"
-                  keyboardType="phone-pad"
-                />
+              <FormField label="Empresa" icon="briefcase-outline">
+                <TextInput value={form.empresa} onChangeText={(v) => setForm({...form, empresa: v})} />
+              </FormField>
+              <FormField label="Teléfono" icon="call-outline">
+                <TextInput value={form.telefono} onChangeText={(v) => setForm({...form, telefono: v})} keyboardType="phone-pad" />
               </FormField>
             </>
           ) : (
             <>
-              <ProfileCard text={`@${saved.username}`} variant="username" />
-              <ProfileCard text={saved.speciality} variant="speciality" />
-              <ProfileCard
-                text={saved.birthdate.toLocaleDateString("es-ES", {
-                  day: "numeric",
-                  month: "short",
-                  year: "numeric",
-                })}
-                variant="birthdate"
+              <ProfileCard label="Nombre" text={saved.nombre} icon="person-outline" />
+              <ProfileCard label="Apellido" text={saved.apellido} icon="person-outline" />
+              <ProfileCard label="Username" text={`@${saved.username}`} icon="at-outline" />
+              <ProfileCard label="Empresa" text={saved.empresa || "No definida"} icon="briefcase-outline" />
+              <ProfileCard label="Teléfono" text={saved.telefono || "No definido"} icon="call-outline" />
+              <ProfileCard 
+                label="Fecha de Nacimiento" 
+                text={saved.fechaNacimiento.toLocaleDateString("es-ES")} 
+                icon="calendar-clear-outline" 
               />
-              <ProfileCard text={saved.phone} variant="phone" />
             </>
           )}
         </View>
 
-        {isEditing && isError && (
-          <Text style={styles.errorText}>
-            Por favor corrige los errores antes de guardar.
-          </Text>
-        )}
-
         {isEditing ? (
           <View style={{ gap: 10 }}>
-            <Button label="Guardar" variant="primary" onPress={handleSave} />
-            <Button label="Cancelar" variant="primary" onPress={handleCancel} />
+            <Button label={isSubmitting ? "Guardando..." : "Guardar"} onPress={handleSave} disabled={isSubmitting} />
+            <Button label="Cancelar" variant="outline" onPress={() => setIsEditing(false)} />
           </View>
         ) : (
-          <Button
-            label="Editar Perfil"
-            variant="primary"
-            onPress={() => setIsEditing(true)}
-          />
+          <View style={{ gap: 10 }}>
+            <Button label="Editar Perfil" onPress={() => setIsEditing(true)} />
+            <Button label="Cerrar Sesión" variant="danger" onPress={logout} />
+          </View>
         )}
-        <Button
-          label="Cerrar Sesión"
-          variant="danger"
-          onPress={() => {
-            logout();
-            showToast("Sesión cerrada", "info");
-          }}
-        />
       </ScrollView>
-      {/* BOTTOM SHEET DE DATEPICKER */}
+
       <DatePickerSheet
         ref={dateSheetRef}
         value={date}
-        onConfirm={(selectedDate) => {
-          clearError("birthdate");
-          setDate(selectedDate);
-          setForm({
-            ...form,
-            birthdate: selectedDate,
-          });
-        }}
-        onOpenChange={(open) => setIsAnySheetOpen(open)}
+        onConfirm={(d) => { setDate(d); setForm({...form, fechaNacimiento: d}); }}
+        onOpenChange={setIsAnySheetOpen}
       />
     </View>
   );
