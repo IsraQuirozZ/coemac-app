@@ -1,52 +1,58 @@
 import { colors } from "@/theme/colors";
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import IconButton from "../ui/IconButton";
 
 export type ActivityType = "referencia" | "reunion" | "agradecimiento";
 
 type ActivityCardProps = {
-  type:        ActivityType;
-  personName:  string;   // receptor (ref/agradecimiento) | invitado (reunion)
-  detail:      string;   // nombreContacto (ref/agradecimiento) | fecha agendada (reunion)
-  date:        string;   // createdAt formateado
-  onDelete?:   () => void;
-  onPress?:    () => void;
+  type: ActivityType;
+  title: string;
+  detail?: string;
+  date: string;
+  onDelete?: () => void;
+  onPress?: () => void;
 };
 
-// Labels ajustados a los datos reales del schema
-const contentByType: Record<ActivityType, { subjectLabel: string; detailLabel: string }> = {
-  referencia:     { subjectLabel: "Referencia para:",    detailLabel: "Contacto referido:" },
-  reunion:        { subjectLabel: "Reunión con:",        detailLabel: "Fecha agendada:"    },
-  agradecimiento: { subjectLabel: "Agradecimiento a:",   detailLabel: "Contacto negocio:"  },
+const detailLabels: Record<ActivityType, string> = {
+  referencia: "Contacto referido:",
+  reunion: "Fecha agendada:",
+  agradecimiento: "Importe negocio:",
 };
 
-export default function ActivityCard({ type, personName, detail, date, onDelete, onPress }: ActivityCardProps) {
-  const content = contentByType[type];
-
+export default function ActivityCard({
+  type,
+  title,
+  detail,
+  date,
+  onDelete,
+  onPress,
+}: ActivityCardProps) {
   return (
     <TouchableOpacity style={styles.card} onPress={onPress} activeOpacity={0.7}>
       <View style={styles.cardContent}>
-        <Text style={styles.subject}>
-          <Text style={styles.labelPrimary}>{content.subjectLabel}</Text> {personName}
-        </Text>
-        <Text style={styles.secondLine}>
-          {content.detailLabel} {detail}
-        </Text>
+        <Text style={styles.subject}>{title}</Text>
+
+        {detail ? (
+          <Text style={styles.secondLine}>
+            <Text style={styles.labelPrimary}>{detailLabels[type]}</Text>{" "}
+            {detail}
+          </Text>
+        ) : null}
+
         <Text style={styles.date}>Fecha: {date}</Text>
       </View>
 
-      <View style={{ zIndex: 10 }}>
+      {/* <View style={{ zIndex: 10 }}>
         <IconButton
           iconName="trash"
           iconSize={25}
           iconColor={colors.error}
           onPress={(e) => {
             e.stopPropagation();
-            if (onDelete) onDelete();
+            onDelete?.();
           }}
         />
-      </View>
+      </View> */}
     </TouchableOpacity>
   );
 }
@@ -67,9 +73,9 @@ const styles = StyleSheet.create({
     elevation: 2,
     padding: 12,
   },
-  cardContent:  { gap: 10, flex: 1 },
-  subject:      { fontSize: 16, fontWeight: "500", color: colors.primaryText },
-  labelPrimary: { color: colors.primary },
-  secondLine:   { fontSize: 14, color: colors.primaryText },
-  date:         { fontSize: 12, color: colors.secondaryText },
+  cardContent: { gap: 10, flex: 1 },
+  subject: { fontSize: 16, fontWeight: "500", color: colors.primary },
+  labelPrimary: { color: colors.primaryText },
+  secondLine: { fontSize: 14, color: colors.primaryText },
+  date: { fontSize: 12, color: colors.secondaryText },
 });
