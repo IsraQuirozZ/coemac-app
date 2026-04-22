@@ -18,6 +18,7 @@ type User = {
   email: string;
   telefono?: string;
   fechaNacimiento?: string;
+  rol: "USER" | "ADMIN";
 };
 
 // Tipo del contexto

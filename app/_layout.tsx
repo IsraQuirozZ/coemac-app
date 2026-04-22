@@ -16,8 +16,7 @@ function AuthGate() {
     //EVITA PANTALLA EN BLANCO
     if (!segments.length) return;
 
-    const inAuthScreen =
-      segments[0] === "login" || segments[0] === "register";
+    const inAuthScreen = segments[0] === "login" || segments[0] === "register";
 
     if (!token && !inAuthScreen) {
       router.replace("/login");
@@ -33,7 +32,9 @@ function AuthGate() {
 
 export default function RootLayout() {
   return (
-    <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.background }}>
+    <GestureHandlerRootView
+      style={{ flex: 1, backgroundColor: colors.background }}
+    >
       <AuthProvider>
         <ToastProvider>
           <AuthGate />
@@ -48,16 +49,47 @@ export default function RootLayout() {
             <Stack.Screen name="register" />
             <Stack.Screen name="(tabs)" />
 
-            <Stack.Screen name="(modals)/crearReferencia" options={{ presentation: "modal" }} />
-            <Stack.Screen name="(modals)/crearAgradecimiento" options={{ presentation: "modal" }} />
-            <Stack.Screen name="(modals)/envioAgradecimiento" options={{ presentation: "modal" }} />
-            <Stack.Screen name="(modals)/crearReunion" options={{ presentation: "modal" }} />
-            <Stack.Screen name="(modals)/crearIncidencia" options={{ presentation: "modal" }} />
+            <Stack.Screen
+              name="(modals)/crearReferencia"
+              options={{ presentation: "modal" }}
+            />
+            <Stack.Screen
+              name="(modals)/crearAgradecimiento"
+              options={{ presentation: "modal" }}
+            />
+            <Stack.Screen
+              name="(modals)/envioAgradecimiento"
+              options={{ presentation: "modal" }}
+            />
+            <Stack.Screen
+              name="(modals)/crearReunion"
+              options={{ presentation: "modal" }}
+            />
+            <Stack.Screen
+              name="(modals)/crearIncidencia"
+              options={{ presentation: "modal" }}
+            />
+            <Stack.Screen
+              name="(modals)/informe"
+              options={{ presentation: "modal" }}
+            />
 
-            <Stack.Screen name="(modals)/referencias/[id]" options={{ presentation: "modal" }} />
-            <Stack.Screen name="(modals)/reuniones/[id]" options={{ presentation: "modal" }} />
-            <Stack.Screen name="(modals)/agradecimientos/[id]" options={{ presentation: "modal" }} />
-            <Stack.Screen name="(modals)/incidencias/[id]" options={{ presentation: "modal" }} />
+            <Stack.Screen
+              name="(modals)/referencias/[id]"
+              options={{ presentation: "modal" }}
+            />
+            <Stack.Screen
+              name="(modals)/reuniones/[id]"
+              options={{ presentation: "modal" }}
+            />
+            <Stack.Screen
+              name="(modals)/agradecimientos/[id]"
+              options={{ presentation: "modal" }}
+            />
+            <Stack.Screen
+              name="(modals)/incidencias/[id]"
+              options={{ presentation: "modal" }}
+            />
           </Stack>
         </ToastProvider>
       </AuthProvider>

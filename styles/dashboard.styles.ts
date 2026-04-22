@@ -6,7 +6,7 @@ export const dashboardStyles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
-    gap: 20,
+    gap: 19,
   },
 
   dashboardActivity: {
@@ -23,7 +23,7 @@ export const dashboardStyles = StyleSheet.create({
   filterContainer: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 10,
+    // marginTop: 10,
     gap: 15,
     zIndex: 200,
   },

@@ -1,16 +1,25 @@
 // ─── helpers internos ────────────────────────────────────────────────────────
 const fmtDate = (d: any) =>
-  d ? new Date(d).toLocaleDateString("es-ES", { day: "2-digit", month: "short", year: "numeric" }) : "—";
+  d
+    ? new Date(d).toLocaleDateString("es-ES", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      })
+    : "—";
 
-const userName = (u: any) =>
-  u ? `${u.nombre} ${u.apellido}` : "—";
+const userName = (u: any) => (u ? `${u.nombre} ${u.apellido}` : "—");
 
 // ─── HTML para el PDF ────────────────────────────────────────────────────────
 export const buildHTML = (
   refs: any[],
   reunions: any[],
   agradecimientos: any[],
-) => `
+  period: "30d" | "year" = "30d",
+  metrics: any = null,
+) => {
+  const periodLabel = period === "year" ? "último año" : "últimos 30 días";
+  return `
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -34,53 +43,97 @@ export const buildHTML = (
 </head>
 <body>
   <h1>Informe de Actividad — COEMAC</h1>
-  <p class="sub">Generado el ${fmtDate(new Date())}</p>
+  <p class="sub">${periodLabel} - Generado el ${fmtDate(new Date())}</p>
+
+  ${
+    metrics
+      ? `
+    <div style="margin-bottom: 24px;">
+      <p><strong>Importe total generado:</strong> ${metrics.totalImporte?.toFixed(2) || "0"} €</p>
+    </div>
+  `
+      : ""
+  }
 
   <h2>Referencias (${refs.length})</h2>
-  ${refs.length === 0 ? "<p>Sin referencias.</p>" : `
+  ${
+    refs.length === 0
+      ? "<p>Sin referencias.</p>"
+      : `
   <table>
     <thead><tr><th>Para</th><th>Contacto referido</th><th>Tipo</th><th>Fecha</th></tr></thead>
     <tbody>
-      ${refs.map(r => `
-      <tr>
-        <td>${userName(r.receptor)}</td>
-        <td>${r.nombreContacto || "—"}</td>
-        <td><span class="badge ${r.tipo?.toLowerCase()}">${r.tipo || "—"}</span></td>
-        <td>${fmtDate(r.fechaReferencia || r.createdAt)}</td>
-      </tr>`).join("")}
+      ${refs
+        .map((r) => {
+          const isSent = !!r.emisorId;
+
+          return `
+            <tr>
+              <td>${isSent ? userName(r.receptor) : userName(r.emisor)}</td>
+              <td>${r.nombreContacto || "—"}</td>
+              <td><span class="badge ${r.tipo?.toLowerCase()}">${r.tipo || "—"}</span></td>
+              <td>${fmtDate(r.fechaReferencia || r.createdAt)}</td>
+            </tr>`;
+        })
+        .join("")}
     </tbody>
-  </table>`}
+  </table>`
+  }
 
   <h2>Reuniones (${reunions.length})</h2>
-  ${reunions.length === 0 ? "<p>Sin reuniones.</p>" : `
-  <table>
-    <thead><tr><th>Con</th><th>Fecha agendada</th><th>Estado</th><th>Descripción</th></tr></thead>
-    <tbody>
-      ${reunions.map(r => `
-      <tr>
-        <td>${userName(r.invitado)}</td>
-        <td>${fmtDate(r.fecha)}</td>
-        <td>${r.estado || "—"}</td>
-        <td>${r.descripcion || "—"}</td>
-      </tr>`).join("")}
-    </tbody>
-  </table>`}
+${
+  reunions.length === 0
+    ? "<p>Sin reuniones.</p>"
+    : `
+<table>
+  <thead>
+    <tr>
+      <th>Creador</th>
+      <th>Invitado</th>
+      <th>Estado</th>
+      <th>Fecha agendada</th>
+    </tr>
+  </thead>
+  <tbody>
+    ${reunions
+      .map((r) => {
+        return `
+        <tr>
+          <td>${userName(r.creador)}</td>
+          <td>${userName(r.invitado)}</td>
+          <td>${r.estado || "—"}</td>
+          <td>${fmtDate(r.fechaHora || r.fecha)}</td>
+        </tr>`;
+      })
+      .join("")}
+  </tbody>
+</table>`
+}
 
   <h2>Agradecimientos GNC (${agradecimientos.length})</h2>
-  ${agradecimientos.length === 0 ? "<p>Sin agradecimientos.</p>" : `
+  ${
+    agradecimientos.length === 0
+      ? "<p>Sin agradecimientos.</p>"
+      : `
   <table>
     <thead><tr><th>Para</th><th>Contacto negocio</th><th>Importe (€)</th><th>Fecha negocio</th></tr></thead>
     <tbody>
-      ${agradecimientos.map(a => `
+      ${agradecimientos
+        .map(
+          (a) => `
       <tr>
         <td>${userName(a.receptor)}</td>
         <td>${a.nombreContacto || "—"}</td>
         <td>${a.importe != null ? `${a.importe.toFixed(2)} €` : "—"}</td>
         <td>${fmtDate(a.fechaNegocio || a.createdAt)}</td>
-      </tr>`).join("")}
+      </tr>`,
+        )
+        .join("")}
     </tbody>
-  </table>`}
+  </table>`
+  }
 
   <footer>COEMAC · Informe generado automáticamente</footer>
 </body>
 </html>`;
+};
