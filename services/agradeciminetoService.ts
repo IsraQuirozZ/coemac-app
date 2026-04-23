@@ -1,11 +1,7 @@
 import { apiFetch } from "./apiClient";
 
-export const getAgradecimientos = async (filters: Record<string, string> = {}) => {
-  // Elimina valores undefined/null/vacíos para no mandar params sucios
-  const clean = Object.fromEntries(
-    Object.entries(filters).filter(([_, v]) => v !== undefined && v !== null && v !== "")
-  );
-  const query = new URLSearchParams(clean).toString();
+export const getAgradecimientos = async (filters = {}) => {
+  const query = new URLSearchParams(filters).toString();
   const url = query ? `/agradecimientos?${query}` : "/agradecimientos";
   return apiFetch(url);
 };

@@ -73,6 +73,10 @@ export default function RootLayout() {
               name="(modals)/informe"
               options={{ presentation: "modal" }}
             />
+            <Stack.Screen
+              name="(modals)/informeEntity"
+              options={{ presentation: "modal" }}
+            />
 
             <Stack.Screen
               name="(modals)/referencias/[id]"
