@@ -49,7 +49,34 @@ export const buildHTML = (
     metrics
       ? `
     <div style="margin-bottom: 24px;">
+      <h2>Importe</h2>
       <p><strong>Importe total generado:</strong> ${metrics.totalImporte?.toFixed(2) || "0"} €</p>
+    </div>
+
+    <div style="margin-bottom: 24px;">
+      <h2>Usuario que más generó</h2>
+      <table>
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Importe generado</th>
+          <th>Agradecimientos recibidos</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr>
+            <td>
+              ${metrics.topImportador.usuario.nombre}
+            </td>
+            <td>
+              ${metrics.topImportador.totalImporte.toFixed(2)} €
+            </td>
+            <td>
+              ${metrics.topImportador.totalAgradecimientos}
+            </td>
+          </tr>        
+      </tbody>
+    </table>
     </div>
   `
       : ""
@@ -80,35 +107,105 @@ export const buildHTML = (
   </table>`
   }
 
+  ${
+    metrics?.topReferenciadores?.length
+      ? `
+    <h2>Top 3 · Referenciadores</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Referencias Enviadas</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${metrics.topReferenciadores
+          .map(
+            (item: any) => `
+          <tr>
+            <td>
+              ${item.usuario.nombre} ${item.usuario.apellido}
+            </td>
+            <td>
+              ${item.totalReferencias}
+            </td>
+          </tr>
+        `,
+          )
+          .join("")}
+      </tbody>
+    </table>
+  `
+      : ""
+  }
+
+  <div style="page-break-before: always;"></div>
+
   <h2>Reuniones (${reunions.length})</h2>
 ${
   reunions.length === 0
     ? "<p>Sin reuniones.</p>"
     : `
-<table>
-  <thead>
-    <tr>
-      <th>Creador</th>
-      <th>Invitado</th>
-      <th>Estado</th>
-      <th>Fecha agendada</th>
-    </tr>
-  </thead>
-  <tbody>
-    ${reunions
-      .map((r) => {
-        return `
+    <table>
+      <thead>
         <tr>
-          <td>${userName(r.creador)}</td>
-          <td>${userName(r.invitado)}</td>
-          <td>${r.estado || "—"}</td>
-          <td>${fmtDate(r.fechaHora || r.fecha)}</td>
-        </tr>`;
-      })
-      .join("")}
-  </tbody>
-</table>`
+          <th>Creador</th>
+          <th>Invitado</th>
+          <th>Estado</th>
+          <th>Fecha agendada</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${reunions
+          .map((r) => {
+            return `
+            <tr>
+              <td>${userName(r.creador)}</td>
+              <td>${userName(r.invitado)}</td>
+              <td>${r.estado || "—"}</td>
+              <td>${fmtDate(r.fechaHora || r.fecha)}</td>
+            </tr>`;
+          })
+          .join("")}
+      </tbody>
+    </table>`
 }
+
+${
+  metrics?.topReuniones?.length
+    ? `
+    <h2>Top 3 · Con más reuniones</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Reuniones</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${metrics.topReuniones
+          .map(
+            (item: any) => `
+          <tr>
+            <td>
+              ${item.usuario.nombre} ${item.usuario.apellido}
+            </td>
+            <td>
+              ${item.totalReuniones}
+            </td>
+          </tr>
+        `,
+          )
+          .join("")}
+      </tbody>
+    </table>
+  `
+    : ""
+}
+
+  <div style="page-break-before: always;"></div>
 
   <h2>Agradecimientos GNC (${agradecimientos.length})</h2>
   ${
@@ -133,7 +230,95 @@ ${
   </table>`
   }
 
-  <footer>COEMAC · Informe generado automáticamente</footer>
+  ${
+    metrics?.topImportadores?.length
+      ? `
+    <h2>Top 3 · Mayor importe generado</h2>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Usuario</th>
+          <th>Importe total</th>
+          <th>Agradecimientos</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${metrics.topImportadores
+          .map(
+            (item: any) => `
+          <tr>
+            <td>
+              ${item.usuario.nombre} ${item.usuario.apellido}
+            </td>
+            <td>
+              ${item.totalImporte.toFixed(2)} €
+            </td>
+            <td>
+              ${item.totalAgradecimientos}
+            </td>
+          </tr>
+        `,
+          )
+          .join("")}
+      </tbody>
+    </table>
+  `
+      : ""
+  }
+
+  <div style="page-break-before: always;"></div>
+
+  <h2>Resumen General</h2>
+
+  <div style="margin-top: 20px; line-height: 1.9;">
+    <p><strong>Total referencias:</strong> ${refs.length}</p>
+    <p><strong>Total reuniones:</strong> ${reunions.length}</p>
+    <p><strong>Total agradecimientos:</strong> ${agradecimientos.length}</p>
+    <p><strong>Importe generado:</strong> ${metrics?.totalImporte?.toFixed(2) || "0"} €</p>
+
+    ${
+      metrics?.topImportador
+        ? `
+        <p>
+          <strong>Mayor generador de negocio:</strong>
+          ${metrics.topImportador.usuario.nombre}
+          ${metrics.topImportador.usuario.apellido}
+          (${metrics.topImportador.totalImporte.toFixed(2)} €)
+        </p>
+      `
+        : ""
+    }
+
+    ${
+      metrics?.topReferenciadores?.[0]
+        ? `
+        <p>
+          <strong>Top referenciador:</strong>
+          ${metrics.topReferenciadores[0].usuario.nombre}
+          ${metrics.topReferenciadores[0].usuario.apellido}
+          (${metrics.topReferenciadores[0].totalReferencias} referencias)
+        </p>
+      `
+        : ""
+    }
+
+    ${
+      metrics?.topReuniones?.[0]
+        ? `
+        <p>
+          <strong>Mayor participación en reuniones:</strong>
+          ${metrics.topReuniones[0].usuario.nombre}
+          ${metrics.topReuniones[0].usuario.apellido}
+          (${metrics.topReuniones[0].totalReuniones} reuniones)
+        </p>
+      `
+        : ""
+    }
+  </div>
+  <footer>
+    <p style="color: #005947;">COEMAC · Informe generado automáticamente · ${fmtDate(new Date())}</p>
+  </footer>
 </body>
 </html>`;
 };

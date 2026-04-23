@@ -115,7 +115,6 @@ export default function Informe() {
         enableOnAndroid={true}
         keyboardDismissMode="on-drag"
       >
-        {/* Cabecera */}
         <View style={globalStyles.containerText}>
           <Text style={globalStyles.containerTitle}>Informe de Actividad</Text>
           <Text style={globalStyles.containerDescription}>

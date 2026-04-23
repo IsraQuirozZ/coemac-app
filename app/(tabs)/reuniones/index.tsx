@@ -3,6 +3,8 @@ import ReunionCard from "@/components/reuniones/reunionCard";
 import Button from "@/components/ui/Button";
 import FilterButton from "@/components/ui/FilterButton";
 import SwipeActions from "@/components/ui/SwipeActions";
+import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/hooks/useToast";
 import { deleteReunion, getReuniones } from "@/services/reunionService";
 import { globalStyles } from "@/styles/globals.styles";
 import { reunionesStyles as styles } from "@/styles/reuniones.styles";
@@ -20,13 +22,15 @@ import {
 } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
 
-import { useToast } from "@/hooks/useToast";
-
 export default function Reuniones() {
-  const { showToast } = useToast();
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const isAdmin = user?.rol === "ADMIN";
+  const [selectedPeriod, setSelectedPeriod] = useState("30d");
 
   const router = useRouter();
+  const { showToast } = useToast();
+
+  const [loading, setLoading] = useState(true);
 
   // TOGGLE DE DESCRIPCIÓN EN CARD
   const [openCardId, setOpenCardId] = useState<string | null>(null);
@@ -112,7 +116,7 @@ export default function Reuniones() {
       empresa: member.empresa || "",
       descripcion: item.descripcion || "",
       estado: item.estado,
-      viewed: isReceived ? !!item.viewedAt : true,
+      viewed: isAdmin ? true : isReceived ? !!item.viewedAt : true,
     };
   };
 
@@ -167,32 +171,49 @@ export default function Reuniones() {
       <ScrollView contentContainerStyle={globalStyles.container}>
         {/* Título y subtítulo */}
         <View style={globalStyles.containerText}>
-          <Text style={globalStyles.containerTitle}>Tus Reuniones</Text>
+          <Text style={globalStyles.containerTitle}>
+            {isAdmin ? "Reuniones" : "Tus Reuniones"}
+          </Text>
           <Text style={globalStyles.containerDescription}>
-            Registro de tus reuniones.
+            {isAdmin
+              ? "Registro de reuniones globales."
+              : "Registro de tus reuniones."}
           </Text>
         </View>
 
         {/* Filtros Recibidas / Enviadas */}
-        <View style={styles.filterContainer}>
-          <FilterButton
-            label="Recibidas"
-            active={direccion === "Recibidas"}
-            onPress={() => {
-              setDireccion("Recibidas");
-              setOpenCardId(null);
-            }}
+        {isAdmin ? (
+          <Button
+            label="+ Informe"
+            variant="secondary"
+            onPress={() =>
+              router.push({
+                pathname: "/(modals)/informeEntity",
+                params: { type: "reuniones", period: selectedPeriod },
+              })
+            }
           />
-          <FilterButton
-            label="Enviadas"
-            position="last"
-            active={direccion === "Enviadas"}
-            onPress={() => {
-              setDireccion("Enviadas");
-              setOpenCardId(null);
-            }}
-          />
-        </View>
+        ) : (
+          <View style={styles.filterContainer}>
+            <FilterButton
+              label="Recibidas"
+              active={direccion === "Recibidas"}
+              onPress={() => {
+                setDireccion("Recibidas");
+                setOpenCardId(null);
+              }}
+            />
+            <FilterButton
+              label="Enviadas"
+              position="last"
+              active={direccion === "Enviadas"}
+              onPress={() => {
+                setDireccion("Enviadas");
+                setOpenCardId(null);
+              }}
+            />
+          </View>
+        )}
 
         {loading ? (
           <ActivityIndicator color={colors.primary} />
@@ -266,15 +287,17 @@ export default function Reuniones() {
         )}
       </ScrollView>
 
-      <Button
-        containerStyle={styles.addButton}
-        label="Agregar Reunión"
-        variant="add"
-        onPress={() => {
-          router.push("/(modals)/crearReunion");
-          setOpenCardId(null);
-        }}
-      />
+      {!isAdmin && (
+        <Button
+          containerStyle={styles.addButton}
+          label="Agregar Reunión"
+          variant="add"
+          onPress={() => {
+            router.push("/(modals)/crearReunion");
+            setOpenCardId(null);
+          }}
+        />
+      )}
     </View>
   );
 }

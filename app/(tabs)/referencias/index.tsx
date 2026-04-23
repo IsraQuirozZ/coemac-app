@@ -3,6 +3,7 @@ import ReferenceCard from "@/components/referencias/ReferenceCard";
 import Button from "@/components/ui/Button";
 import FilterButton from "@/components/ui/FilterButton";
 import SwipeActions from "@/components/ui/SwipeActions";
+import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/useToast";
 import { globalStyles } from "@/styles/globals.styles";
 import { colors } from "@/theme/colors";
@@ -25,8 +26,13 @@ import {
 import { referenciasStyles as styles } from "../../../styles/referencias.styles";
 
 export default function Referencias() {
+  const { user } = useAuth();
+  const isAdmin = user?.rol === "ADMIN";
+
   const router = useRouter();
   const { showToast } = useToast();
+
+  const [selectedPeriod, setSelectedPeriod] = useState("30d");
 
   // SWIPEABLE REFS
   const swipeRefs = useRef<{ [key: string]: Swipeable | null }>({});
@@ -188,24 +194,40 @@ export default function Referencias() {
         scrollEventThrottle={200}
       >
         <View style={globalStyles.containerText}>
-          <Text style={globalStyles.containerTitle}>Tus Referencias</Text>
+          <Text style={globalStyles.containerTitle}>
+            {isAdmin ? `Referencias` : "Tus Referencias"}
+          </Text>
           <Text style={globalStyles.containerDescription}>
-            Registro de referencias recibidas y enviadas.
+            Registro de referencias{" "}
+            {isAdmin ? "globales" : "recibidas y enviadas"}.
           </Text>
         </View>
-        <View style={styles.filterContainer}>
-          <FilterButton
-            label="Recibidas"
-            active={direccion === "Recibidas"}
-            onPress={() => setDireccion("Recibidas")}
+        {isAdmin ? (
+          <Button
+            label="+ Informe"
+            variant="secondary"
+            onPress={() =>
+              router.push({
+                pathname: "/(modals)/informeEntity",
+                params: { type: "referencias", period: selectedPeriod },
+              })
+            }
           />
-          <FilterButton
-            label="Enviadas"
-            position="last"
-            active={direccion === "Enviadas"}
-            onPress={() => setDireccion("Enviadas")}
-          />
-        </View>
+        ) : (
+          <View style={styles.filterContainer}>
+            <FilterButton
+              label="Recibidas"
+              active={direccion === "Recibidas"}
+              onPress={() => setDireccion("Recibidas")}
+            />
+            <FilterButton
+              label="Enviadas"
+              position="last"
+              active={direccion === "Enviadas"}
+              onPress={() => setDireccion("Enviadas")}
+            />
+          </View>
+        )}
         <View style={styles.filterContainer}>
           <FilterButton
             label="Todas"
@@ -255,7 +277,7 @@ export default function Referencias() {
                     memberLabel={mappedRef.label}
                     referenceType={ref.tipo}
                     date={formatDate(dateToShow)}
-                    viewed={isReceived ? isViewed : true}
+                    viewed={isAdmin ? true : isReceived ? isViewed : true}
                   />
                 </TouchableOpacity>
               );
@@ -310,12 +332,14 @@ export default function Referencias() {
           />
         )}
       </ScrollView>
-      <Button
-        containerStyle={styles.addButton}
-        label="Agregar Referencia"
-        variant="add"
-        onPress={() => router.push("/(modals)/crearReferencia")}
-      />
+      {!isAdmin && (
+        <Button
+          containerStyle={styles.addButton}
+          label="Agregar Referencia"
+          variant="add"
+          onPress={() => router.push("/(modals)/crearReferencia")}
+        />
+      )}
     </View>
   );
 }
