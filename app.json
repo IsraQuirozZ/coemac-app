@@ -1,12 +1,12 @@
 {
   "expo": {
-    "name": "ultimo_native",
-    "slug": "ultimo_native",
+    "name": "coemac-app",
+    "slug": "coemac-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "backgroundColor": "#F7F9F8",
     "icon": "./assets/images/icon.png",
-    "scheme": "ultimonative",
+    "scheme": "coemac-app",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
