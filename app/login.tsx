@@ -173,6 +173,11 @@ export default function LoginScreen() {
           />
         )}
 
+        {/* FORGOT PASSWORD */}
+        <TouchableOpacity onPress={() => router.push("/forgotPassword")} style={{ alignSelf: 'center', marginTop: 10 }}>
+          <Text style={{ color: colors.light, fontWeight: '600' }}>¿Olvidaste tu contraseña?</Text>
+        </TouchableOpacity>
+
         {/* REDIRECT */}
         <View style={styles.registerRedirect}>
           <Text style={styles.registerLabel}>¿No tienes una cuenta? </Text>

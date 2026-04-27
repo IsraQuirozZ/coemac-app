@@ -16,7 +16,12 @@ function AuthGate() {
     //EVITA PANTALLA EN BLANCO
     if (!segments.length) return;
 
-    const inAuthScreen = segments[0] === "login" || segments[0] === "register";
+
+  const inAuthScreen =
+    segments[0] === "login"          ||
+    segments[0] === "register"       ||
+    segments[0] === "forgotPassword" ||
+    segments[0] === "resetPassword";
 
     if (!token && !inAuthScreen) {
       router.replace("/login");
@@ -47,6 +52,8 @@ export default function RootLayout() {
           >
             <Stack.Screen name="login" />
             <Stack.Screen name="register" />
+            <Stack.Screen name="forgotPassword" />
+            <Stack.Screen name="resetPassword" />
             <Stack.Screen name="(tabs)" />
 
             <Stack.Screen
