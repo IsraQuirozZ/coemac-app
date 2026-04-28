@@ -6,7 +6,13 @@ import { colors } from "@/theme/colors";
 import { Ionicons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import { ActivityIndicator, Text, TextInput, TouchableOpacity, View } from "react-native";
+import {
+  ActivityIndicator,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { styles } from "../styles/forgotPassword.styles";
 
@@ -21,9 +27,9 @@ export default function ForgotPasswordScreen() {
   const validateIdentifier = (value: string) => {
     const trimmed = value.trim();
     if (!trimmed) return "Requerido";
-    
+
     const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
-    
+
     if (!isEmail) return "Ingresa un email válido";
     return null;
   };
@@ -52,18 +58,27 @@ export default function ForgotPasswordScreen() {
 
   return (
     <View style={{ flex: 1 }}>
-      <KeyboardAwareScrollView contentContainerStyle={styles.container} enableOnAndroid>
+      <KeyboardAwareScrollView
+        contentContainerStyle={styles.container}
+        enableOnAndroid
+      >
         {!isSubmitted ? (
           <>
             <View style={styles.header}>
-              <Text style={globalStyles.containerTitle}>Recuperar Contraseña</Text>
+              <Text style={globalStyles.containerTitle}>
+                Recuperar Contraseña
+              </Text>
               <Text style={globalStyles.containerDescription}>
                 Ingresa tu correo electrónico y te enviaremos un enlace.
               </Text>
             </View>
 
             <View style={globalStyles.formFields}>
-              <FormField label="Email" icon="person-outline" error={error || ""}>
+              <FormField
+                label="Email"
+                icon="person-outline"
+                error={error || ""}
+              >
                 <TextInput
                   placeholder="tucorreo@..."
                   placeholderTextColor={colors.secondaryText}
@@ -81,12 +96,18 @@ export default function ForgotPasswordScreen() {
             {loading ? (
               <ActivityIndicator color={colors.primary} size="large" />
             ) : (
-              <Button label="Enviar enlace" variant="primary" onPress={handleRecover} />
+              <Button
+                label="Enviar enlace"
+                variant="primary"
+                onPress={handleRecover}
+              />
             )}
 
             <View style={styles.backToLoginContainer}>
               <TouchableOpacity onPress={() => router.back()}>
-                <Text style={styles.backToLoginLink}>Volver al inicio de sesión</Text>
+                <Text style={styles.backToLoginLink}>
+                  Volver al inicio de sesión
+                </Text>
               </TouchableOpacity>
             </View>
           </>
@@ -97,11 +118,17 @@ export default function ForgotPasswordScreen() {
             </View>
             <Text style={globalStyles.containerTitle}>¡Enlace enviado!</Text>
             <Text style={styles.successText}>
-              Si hay una cuenta asociada a <Text style={{ fontWeight: "bold" }}>{identifier}</Text>, recibirás instrucciones en breve.
+              Si hay una cuenta asociada a{" "}
+              <Text style={{ fontWeight: "bold" }}>{identifier}</Text>,
+              recibirás instrucciones en breve.
             </Text>
 
             <View style={{ width: "100%", marginTop: 20 }}>
-              <Button label="Entendido" variant="primary" onPress={() => router.replace("/login")} />
+              <Button
+                label="Entendido"
+                variant="primary"
+                onPress={() => router.replace("/login")}
+              />
             </View>
           </View>
         )}
