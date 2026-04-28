@@ -102,7 +102,7 @@ export default function Profile() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <Header title="Perfil" />
-      <ScrollView contentContainerStyle={[globalStyles.container, { paddingBottom: 40 }]}>
+      <ScrollView contentContainerStyle={[globalStyles.container, { paddingBottom: 120}]}>
         
         {/* Avatar Header */}
         <View style={styles.profileHeader}>
