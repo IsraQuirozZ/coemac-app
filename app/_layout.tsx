@@ -19,6 +19,7 @@ function AuthGate() {
     const inAuthScreen =
       segments[0] === "login" ||
       segments[0] === "register" ||
+      segments[0] === "verifyEmail" ||
       segments[0] === "forgotPassword" ||
       segments[0] === "resetPassword";
 
@@ -53,6 +54,7 @@ export default function RootLayout() {
             <Stack.Screen name="register" />
             <Stack.Screen name="forgotPassword" />
             <Stack.Screen name="resetPassword" />
+            <Stack.Screen name="verifyEmail" />
             <Stack.Screen name="(tabs)" />
 
             <Stack.Screen

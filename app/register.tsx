@@ -137,7 +137,7 @@ export default function RegisterScreen() {
 
       await registerRequest(data);
 
-      showToast("Registro exitoso, ya puedes iniciar sesión", "success");
+      showToast("Verifica tu email para continuar", "info");
 
       router.replace({ pathname: "/login", params: { email: form.email } });
     } catch (err: any) {
