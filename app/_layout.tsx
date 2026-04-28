@@ -16,12 +16,12 @@ function AuthGate() {
     //EVITA PANTALLA EN BLANCO
     if (!segments.length) return;
 
-
-  const inAuthScreen =
-    segments[0] === "login"          ||
-    segments[0] === "register"       ||
-    segments[0] === "forgotPassword" ||
-    segments[0] === "resetPassword";
+    const inAuthScreen =
+      segments[0] === "login" ||
+      segments[0] === "register" ||
+      segments[0] === "verifyEmail" ||
+      segments[0] === "forgotPassword" ||
+      segments[0] === "resetPassword";
 
     if (!token && !inAuthScreen) {
       router.replace("/login");
@@ -54,6 +54,7 @@ export default function RootLayout() {
             <Stack.Screen name="register" />
             <Stack.Screen name="forgotPassword" />
             <Stack.Screen name="resetPassword" />
+            <Stack.Screen name="verifyEmail" />
             <Stack.Screen name="(tabs)" />
 
             <Stack.Screen
@@ -70,10 +71,6 @@ export default function RootLayout() {
             />
             <Stack.Screen
               name="(modals)/crearReunion"
-              options={{ presentation: "modal" }}
-            />
-            <Stack.Screen
-              name="(modals)/crearIncidencia"
               options={{ presentation: "modal" }}
             />
             <Stack.Screen
@@ -95,10 +92,6 @@ export default function RootLayout() {
             />
             <Stack.Screen
               name="(modals)/agradecimientos/[id]"
-              options={{ presentation: "modal" }}
-            />
-            <Stack.Screen
-              name="(modals)/incidencias/[id]"
               options={{ presentation: "modal" }}
             />
           </Stack>
