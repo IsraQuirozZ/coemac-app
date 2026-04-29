@@ -22,7 +22,9 @@ export default function ResetPasswordScreen() {
 
   const handleReset = async () => {
     if (!token) {
-      setError("Token de seguridad no encontrado. Vuelve a solicitar el enlace.");
+      setError(
+        "Token de seguridad no encontrado. Vuelve a solicitar el enlace.",
+      );
       return;
     }
 
@@ -30,8 +32,12 @@ export default function ResetPasswordScreen() {
       setError("La contraseña es obligatoria");
       return;
     }
-    
-    if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/.test(password)) {
+
+    if (
+      !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&-])[A-Za-z\d@$!%*?&-]{8,}$/.test(
+        password,
+      )
+    ) {
       setError("Debe tener mayúscula, minúscula, número y símbolo");
       return;
     }
@@ -56,43 +62,71 @@ export default function ResetPasswordScreen() {
 
   if (success) {
     return (
-      <View style={[styles.container, { alignItems: "center", paddingTop: 100 }]}>
-        <Text style={globalStyles.containerTitle}>¡Contraseña actualizada!</Text>
-        <Text style={[styles.successText, { marginBottom: 30 }]}>
-          Tu contraseña ha sido cambiada exitosamente. Ya puedes iniciar sesión con tu nueva clave.
+      <View
+        style={[styles.container, { alignItems: "center", paddingTop: 100 }]}
+      >
+        <Text style={globalStyles.containerTitle}>
+          ¡Contraseña actualizada!
         </Text>
-        <Button label="Ir al Login" variant="primary" onPress={() => router.replace("/login")} />
+        <Text style={[styles.successText, { marginBottom: 30 }]}>
+          Tu contraseña ha sido cambiada exitosamente. Ya puedes iniciar sesión
+          con tu nueva clave.
+        </Text>
+        <Button
+          label="Ir al Login"
+          variant="primary"
+          onPress={() => router.replace("/login")}
+        />
       </View>
     );
   }
 
   return (
     <View style={{ flex: 1 }}>
-      <KeyboardAwareScrollView contentContainerStyle={styles.container} enableOnAndroid>
+      <KeyboardAwareScrollView
+        contentContainerStyle={styles.container}
+        enableOnAndroid
+      >
         <View style={styles.header}>
           <Text style={globalStyles.containerTitle}>Nueva Contraseña</Text>
-          <Text style={globalStyles.containerDescription}>Crea una contraseña fuerte y segura.</Text>
+          <Text style={globalStyles.containerDescription}>
+            Crea una contraseña fuerte y segura.
+          </Text>
         </View>
 
         <View style={globalStyles.formFields}>
-          <FormField label="Nueva Contraseña" icon="lock-closed" error={error || ""}>
+          <FormField
+            label="Nueva Contraseña"
+            icon="lock-closed"
+            error={error || ""}
+          >
             <TextInput
               style={{ flex: 1, fontSize: 14 }}
               placeholder="********"
               placeholderTextColor={colors.secondaryText}
               value={password}
-              onChangeText={(t) => { setPassword(t); if(error) setError(null); }}
+              onChangeText={(t) => {
+                setPassword(t);
+                if (error) setError(null);
+              }}
               secureTextEntry
             />
           </FormField>
 
-          <FormField label="Confirmar Contraseña" icon="lock-closed">
+          <FormField
+            label="Confirmar Contraseña"
+            icon="lock-closed"
+            error={error || ""}
+          >
             <TextInput
               style={{ flex: 1, fontSize: 14 }}
               placeholder="********"
               placeholderTextColor={colors.secondaryText}
               value={confirmPassword}
-              onChangeText={(t) => { setConfirmPassword(t); if(error) setError(null); }}
+              onChangeText={(t) => {
+                setConfirmPassword(t);
+                if (error) setError(null);
+              }}
               secureTextEntry
             />
           </FormField>
@@ -101,7 +135,11 @@ export default function ResetPasswordScreen() {
         {loading ? (
           <ActivityIndicator color={colors.primary} size="large" />
         ) : (
-          <Button label="Guardar y Continuar" variant="primary" onPress={handleReset} />
+          <Button
+            label="Guardar y Continuar"
+            variant="primary"
+            onPress={handleReset}
+          />
         )}
       </KeyboardAwareScrollView>
     </View>

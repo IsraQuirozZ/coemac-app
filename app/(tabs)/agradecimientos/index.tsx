@@ -3,6 +3,7 @@ import Header from "@/components/layout/Header";
 import Button from "@/components/ui/Button";
 import FilterButton from "@/components/ui/FilterButton";
 import SwipeActions from "@/components/ui/SwipeActions";
+import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/useToast";
 import {
   eliminarAgradecimiento,
@@ -28,6 +29,10 @@ export type FilterType = "Recibidos" | "Enviados";
 
 export default function Agradecimientos() {
   const router = useRouter();
+  const { user } = useAuth();
+  const isAdmin = user?.rol === "ADMIN";
+
+  const [selectedPeriod, setSelectedPeriod] = useState("30d");
   const { showToast } = useToast();
 
   // SWIPEABLE REFS
@@ -65,15 +70,23 @@ export default function Agradecimientos() {
       }
 
       const direction = filter === "Recibidos" ? "recibidos" : "enviados";
-      const res = await getAgradecimientos({ direction, page: pageToLoad, limit: 10 });
+      const res = await getAgradecimientos({
+        direction,
+        page: pageToLoad,
+        limit: 10,
+      });
 
       // Ajusta esto dependiendo de cómo te devuelva los datos tu backend
-      const newData = res.data || res; 
-      
-      setAgradecimientos((prev) => (isLoadMore ? [...prev, ...newData] : newData));
+      const newData = res.data || res;
+
+      setAgradecimientos((prev) =>
+        isLoadMore ? [...prev, ...newData] : newData,
+      );
 
       const total = res.pagination?.total || newData.length; // Ajustar a tu backend
-      const totalLoaded = isLoadMore ? agradecimientos.length + newData.length : newData.length;
+      const totalLoaded = isLoadMore
+        ? agradecimientos.length + newData.length
+        : newData.length;
 
       setHasMore(totalLoaded < total);
       setPage(pageToLoad);
@@ -105,7 +118,9 @@ export default function Agradecimientos() {
           onPress: async () => {
             try {
               await eliminarAgradecimiento(id);
-              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+              Haptics.notificationAsync(
+                Haptics.NotificationFeedbackType.Success,
+              );
               showToast("Agradecimiento eliminado", "success");
               swipeRefs.current[id]?.close();
               fetchData(1, false); // Refresca la lista
@@ -137,7 +152,9 @@ export default function Agradecimientos() {
         }}
         onScroll={({ nativeEvent }) => {
           const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
-          const isNearBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 50;
+          const isNearBottom =
+            layoutMeasurement.height + contentOffset.y >=
+            contentSize.height - 50;
 
           if (isNearBottom && hasMore && !loadingMore && !loading) {
             fetchData(page + 1, true);
@@ -146,43 +163,67 @@ export default function Agradecimientos() {
         scrollEventThrottle={200}
       >
         <View style={globalStyles.containerText}>
-          <Text style={globalStyles.containerTitle}>¡Gracias Usuario!</Text>
+          <Text style={globalStyles.containerTitle}>
+            {isAdmin ? "Agradecimientos" : `¡Gracias ${user?.nombre}!`}
+          </Text>
           <Text style={globalStyles.containerDescription}>
-            Registro de agradecimientos recibidos y enviados.
+            Registro de agradecimientos{" "}
+            {isAdmin ? "globales." : "recibidos y enviados."}
           </Text>
         </View>
 
-        <View style={styles.filterContainer}>
-          <FilterButton
-            label="Recibidos"
-            active={filter === "Recibidos"}
-            onPress={() => setFilter("Recibidos")}
+        {isAdmin ? (
+          <Button
+            label="+ Informe"
+            variant="secondary"
+            onPress={() =>
+              router.push({
+                pathname: "/(modals)/informeEntity",
+                params: { type: "agradecimientos", period: selectedPeriod },
+              })
+            }
           />
-          <FilterButton
-            label="Enviados"
-            position="last"
-            active={filter === "Enviados"}
-            onPress={() => setFilter("Enviados")}
-          />
-        </View>
+        ) : (
+          <View style={styles.filterContainer}>
+            <FilterButton
+              label="Recibidos"
+              active={filter === "Recibidos"}
+              onPress={() => setFilter("Recibidos")}
+            />
+            <FilterButton
+              label="Enviados"
+              position="last"
+              active={filter === "Enviados"}
+              onPress={() => setFilter("Enviados")}
+            />
+          </View>
+        )}
 
         {loading ? (
           <ActivityIndicator color={colors.primary} />
         ) : agradecimientos.length === 0 ? (
-          <Text style={{ textAlign: "center", marginTop: 20, color: colors.secondaryText }}>
+          <Text
+            style={{
+              textAlign: "center",
+              marginTop: 20,
+              color: colors.secondaryText,
+            }}
+          >
             No hay agradecimientos para mostrar.
           </Text>
         ) : (
           <View style={styles.cards}>
             {agradecimientos.map((item) => {
               const isRecibido = filter === "Recibidos";
-              
+
               // 1. Definimos la tarjeta base y la envolvemos en TouchableOpacity para el Detalle
               const card = (
                 <TouchableOpacity
                   key={item.id}
                   activeOpacity={0.7}
-                  onPress={() => router.push(`/(modals)/agradecimientos/${item.id}`)}
+                  onPress={() =>
+                    router.push(`/(modals)/agradecimientos/${item.id}`)
+                  }
                 >
                   <AgradecimientoCard
                     isRecibido={isRecibido}
@@ -213,9 +254,13 @@ export default function Agradecimientos() {
                         icon: "create-outline",
                         color: colors.info,
                         onPress: () => {
-                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                          Haptics.impactAsync(
+                            Haptics.ImpactFeedbackStyle.Medium,
+                          );
                           swipeRefs.current[item.id]?.close();
-                          router.push(`/(modals)/crearAgradecimiento?id=${item.id}`);
+                          router.push(
+                            `/(modals)/crearAgradecimiento?id=${item.id}`,
+                          );
                         },
                       },
                       {
@@ -223,7 +268,9 @@ export default function Agradecimientos() {
                         icon: "trash-outline",
                         color: colors.error,
                         onPress: () => {
-                          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                          Haptics.impactAsync(
+                            Haptics.ImpactFeedbackStyle.Medium,
+                          );
                           handleDelete(item.id);
                         },
                       },
@@ -239,18 +286,23 @@ export default function Agradecimientos() {
             })}
           </View>
         )}
-        
+
         {loadingMore && (
-          <ActivityIndicator style={{ marginVertical: 20 }} color={colors.primary} />
+          <ActivityIndicator
+            style={{ marginVertical: 20 }}
+            color={colors.primary}
+          />
         )}
       </ScrollView>
 
-      <Button
-        containerStyle={globalStyles.addButton} // Usa globalStyles o styles según prefieras
-        label="Agregar Agradecimiento"
-        variant="add"
-        onPress={() => router.push("/(modals)/crearAgradecimiento")}
-      />
+      {!isAdmin && (
+        <Button
+          containerStyle={globalStyles.addButton} // Usa globalStyles o styles según prefieras
+          label="Agregar Agradecimiento"
+          variant="add"
+          onPress={() => router.push("/(modals)/crearAgradecimiento")}
+        />
+      )}
     </View>
   );
 }
