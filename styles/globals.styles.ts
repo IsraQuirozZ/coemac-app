@@ -8,7 +8,8 @@ export const globalStyles = StyleSheet.create({
     paddingTop: 150,
     paddingBottom: 120,
     gap: 30,
-    minHeight: "100%",
+    // minHeight: "100%",
+    flexGrow: 1,
   },
   containerText: {
     gap: 10,

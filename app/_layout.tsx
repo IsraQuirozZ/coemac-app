@@ -94,6 +94,10 @@ export default function RootLayout() {
               name="(modals)/agradecimientos/[id]"
               options={{ presentation: "modal" }}
             />
+            <Stack.Screen
+              name="(modals)/change-password"
+              options={{ presentation: "modal" }}
+            />
           </Stack>
         </ToastProvider>
       </AuthProvider>
