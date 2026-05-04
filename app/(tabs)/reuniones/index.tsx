@@ -4,6 +4,7 @@ import Button from "@/components/ui/Button";
 import FilterButton from "@/components/ui/FilterButton";
 import SwipeActions from "@/components/ui/SwipeActions";
 import { useAuth } from "@/context/AuthContext";
+import { useRefresh } from "@/hooks/useRefresh";
 import { useToast } from "@/hooks/useToast";
 import { deleteReunion, getReuniones } from "@/services/reunionService";
 import { globalStyles } from "@/styles/globals.styles";
@@ -146,13 +147,9 @@ export default function Reuniones() {
     };
   };
 
-  // useFocusEffect(
-  //   useCallback(() => {
-  //     setPage(1);
-  //     setHasMore(true);
-  //     fetchData(1, false);
-  //   }, [direccion]),
-  // );
+  useRefresh(() => {
+    fetchData(1, false);
+  });
 
   useEffect(() => {
     setPage(1);

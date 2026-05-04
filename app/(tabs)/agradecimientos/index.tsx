@@ -4,6 +4,7 @@ import Button from "@/components/ui/Button";
 import FilterButton from "@/components/ui/FilterButton";
 import SwipeActions from "@/components/ui/SwipeActions";
 import { useAuth } from "@/context/AuthContext";
+import { useRefresh } from "@/hooks/useRefresh";
 import { useToast } from "@/hooks/useToast";
 import {
   eliminarAgradecimiento,
@@ -75,8 +76,6 @@ export default function Agradecimientos() {
         page: pageToLoad,
         limit: 10,
       });
-
-      // Ajusta esto dependiendo de cómo te devuelva los datos tu backend
       const newData = res.data || res;
 
       setAgradecimientos((prev) => {
@@ -97,7 +96,9 @@ export default function Agradecimientos() {
     }
   };
 
-
+  useRefresh(() => {
+    fetchData(1, false);
+  });
 
   useEffect(() => {
     setPage(1);

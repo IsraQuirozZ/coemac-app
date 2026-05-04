@@ -1,3 +1,4 @@
+import { useAuth } from "@/context/AuthContext";
 import { colors } from "@/theme/colors";
 import { Ionicons } from "@expo/vector-icons";
 import BottomSheet, {
@@ -7,10 +8,11 @@ import BottomSheet, {
 import { forwardRef, useMemo } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-type MemberOption = {
+export type MemberOption = {
   id: string;
   name: string;
   company: string;
+  rol: "ADMIN" | "USER";
 };
 
 type Props = {
@@ -32,6 +34,8 @@ export const MemberSelectSheet = forwardRef<BottomSheet, Props>(
     },
     ref,
   ) => {
+    const { user } = useAuth();
+
     const snapPoints = useMemo(() => ["40%", "60%"], []);
 
     const renderBackdrop = (props: any) => (
@@ -44,6 +48,12 @@ export const MemberSelectSheet = forwardRef<BottomSheet, Props>(
         enableTouchThrough={false}
       />
     );
+
+    const filteredOption = useMemo(() => {
+      return options.filter(
+        (item) => item.id !== user?.id && item.rol !== "ADMIN",
+      );
+    }, [options, user?.id]);
 
     return (
       <BottomSheet
@@ -70,7 +80,7 @@ export const MemberSelectSheet = forwardRef<BottomSheet, Props>(
         >
           <Text style={styles.title}>{title}</Text>
 
-          {options.map((item) => {
+          {filteredOption.map((item) => {
             const isSelected = selected?.id === item.id;
 
             return (
