@@ -10,39 +10,48 @@ import { globalStyles } from "@/styles/globals.styles";
 import { profileStyles as styles } from "@/styles/profile.styles";
 import { colors } from "@/theme/colors";
 import BottomSheet from "@gorhom/bottom-sheet";
-import { useNavigation } from "expo-router";
+import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   ScrollView,
   Text,
   TextInput,
-  View
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
 
 export default function Profile() {
   const { showToast } = useToast();
-  const { logout }    = useAuth();
-  const navigation    = useNavigation();
-  const dateSheetRef  = useRef<BottomSheet>(null);
+  const { logout } = useAuth();
+  const dateSheetRef = useRef<BottomSheet>(null);
+  const router = useRouter();
 
   const [isAnySheetOpen, setIsAnySheetOpen] = useState(false);
-  const [loading, setLoading]               = useState(true);
-  const [isEditing, setIsEditing]           = useState(false);
-  const [isSubmitting, setIsSubmitting]     = useState(false);
-  const [isError, setIsError]               = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isError, setIsError] = useState(false);
 
   const [form, setForm] = useState({
-    nombre: "", apellido: "", username: "",
-    empresa: "", telefono: "", fechaNacimiento: new Date(),
+    nombre: "",
+    apellido: "",
+    username: "",
+    empresa: "",
+    telefono: "",
+    fechaNacimiento: new Date(),
   });
   const [saved, setSaved] = useState({ ...form });
-  const [date,  setDate]  = useState(new Date());
+  const [date, setDate] = useState(new Date());
 
   const [errors, setErrors] = useState({
-    nombre: "", apellido: "", username: "",
-    empresa: "", telefono: "", fechaNacimiento: "",
+    nombre: "",
+    apellido: "",
+    username: "",
+    empresa: "",
+    telefono: "",
+    fechaNacimiento: "",
   });
 
   useEffect(() => {
@@ -50,12 +59,14 @@ export default function Profile() {
       try {
         const data = await getProfile();
         const initial = {
-          nombre:          data.nombre          || "",
-          apellido:        data.apellido        || "",
-          username:        data.username        || "",
-          empresa:         data.empresa         || "",
-          telefono:        data.telefono        || "",
-          fechaNacimiento: data.fechaNacimiento ? new Date(data.fechaNacimiento) : new Date(),
+          nombre: data.nombre || "",
+          apellido: data.apellido || "",
+          username: data.username || "",
+          empresa: data.empresa || "",
+          telefono: data.telefono || "",
+          fechaNacimiento: data.fechaNacimiento
+            ? new Date(data.fechaNacimiento)
+            : new Date(),
         };
         setForm(initial);
         setSaved(initial);
@@ -78,7 +89,10 @@ export default function Profile() {
   };
 
   const handleSave = async () => {
-    if (!validateForm()) { setIsError(true); return; }
+    if (!validateForm()) {
+      setIsError(true);
+      return;
+    }
     setIsSubmitting(true);
     try {
       const updated = await updateProfile({
@@ -95,62 +109,154 @@ export default function Profile() {
     }
   };
 
-  const initials = `${saved.nombre} ${saved.apellido}`.split(" ").map(n => n[0]).join("").toUpperCase();
+  const initials = `${saved.nombre} ${saved.apellido}`
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .toUpperCase();
 
-  if (loading) return <View style={globalStyles.container}><ActivityIndicator size="large" color={colors.primary} /></View>;
+  if (loading)
+    return (
+      <View style={globalStyles.container}>
+        <ActivityIndicator size="large" color={colors.primary} />
+      </View>
+    );
+
+  const handleChangePassword = () => {
+    router.push("/(modals)/change-password");
+  };
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <View style={{ flex: 1 }}>
       <Header title="Perfil" />
-      <ScrollView contentContainerStyle={[globalStyles.container, { paddingBottom: 120}]}>
-        
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={[globalStyles.container]}
+      >
         {/* Avatar Header */}
         <View style={styles.profileHeader}>
-          <View style={styles.profileAvatar}><Text style={styles.profileAvatarText}>{initials}</Text></View>
-          <Text style={styles.nameText}>{saved.nombre} {saved.apellido}</Text>
+          <View style={styles.profileAvatar}>
+            <Text style={styles.profileAvatarText}>{initials}</Text>
+          </View>
+          <Text style={styles.nameText}>
+            {saved.nombre} {saved.apellido}
+          </Text>
           <Text style={styles.userName}>@{saved.username}</Text>
-          {saved.empresa && <Badge text={saved.empresa} backgroundColor={colors.soft} textColor={colors.primary} />}
+          {saved.empresa && (
+            <Badge
+              text={saved.empresa}
+              backgroundColor={colors.soft}
+              textColor={colors.primary}
+            />
+          )}
         </View>
 
         <View style={styles.profileCards}>
           {isEditing ? (
             <>
-              <FormField label="Nombre" icon="person-outline" error={errors.nombre}>
-                <TextInput value={form.nombre} onChangeText={(v) => setForm({...form, nombre: v})} />
+              <FormField
+                label="Nombre"
+                icon="person-outline"
+                error={errors.nombre}
+              >
+                <TextInput
+                  value={form.nombre}
+                  onChangeText={(v) => setForm({ ...form, nombre: v })}
+                />
               </FormField>
-              <FormField label="Apellido" icon="person-outline" error={errors.apellido}>
-                <TextInput value={form.apellido} onChangeText={(v) => setForm({...form, apellido: v})} />
+              <FormField
+                label="Apellido"
+                icon="person-outline"
+                error={errors.apellido}
+              >
+                <TextInput
+                  value={form.apellido}
+                  onChangeText={(v) => setForm({ ...form, apellido: v })}
+                />
               </FormField>
-              <FormField label="Username" icon="at-outline" error={errors.username}>
-                <TextInput value={form.username} onChangeText={(v) => setForm({...form, username: v})} autoCapitalize="none" />
+              <FormField
+                label="Username"
+                icon="at-outline"
+                error={errors.username}
+              >
+                <TextInput
+                  value={form.username}
+                  onChangeText={(v) => setForm({ ...form, username: v })}
+                  autoCapitalize="none"
+                />
               </FormField>
               <FormField label="Empresa" icon="briefcase-outline">
-                <TextInput value={form.empresa} onChangeText={(v) => setForm({...form, empresa: v})} />
+                <TextInput
+                  value={form.empresa}
+                  onChangeText={(v) => setForm({ ...form, empresa: v })}
+                />
               </FormField>
               <FormField label="Teléfono" icon="call-outline">
-                <TextInput value={form.telefono} onChangeText={(v) => setForm({...form, telefono: v})} keyboardType="phone-pad" />
+                <TextInput
+                  value={form.telefono}
+                  onChangeText={(v) => setForm({ ...form, telefono: v })}
+                  keyboardType="phone-pad"
+                />
               </FormField>
             </>
           ) : (
             <>
-              <ProfileCard label="Nombre" text={saved.nombre} icon="person-outline" />
-              <ProfileCard label="Apellido" text={saved.apellido} icon="person-outline" />
-              <ProfileCard label="Username" text={`@${saved.username}`} icon="at-outline" />
-              <ProfileCard label="Empresa" text={saved.empresa || "No definida"} icon="briefcase-outline" />
-              <ProfileCard label="Teléfono" text={saved.telefono || "No definido"} icon="call-outline" />
-              <ProfileCard 
-                label="Fecha de Nacimiento" 
-                text={saved.fechaNacimiento.toLocaleDateString("es-ES")} 
-                icon="calendar-clear-outline" 
+              <ProfileCard
+                label="Nombre"
+                text={saved.nombre}
+                icon="person-outline"
+              />
+              <ProfileCard
+                label="Apellido"
+                text={saved.apellido}
+                icon="person-outline"
+              />
+              <ProfileCard
+                label="Username"
+                text={`@${saved.username}`}
+                icon="at-outline"
+              />
+              <ProfileCard
+                label="Empresa"
+                text={saved.empresa || "No definida"}
+                icon="briefcase-outline"
+              />
+              <ProfileCard
+                label="Teléfono"
+                text={saved.telefono || "No definido"}
+                icon="call-outline"
+              />
+              <ProfileCard
+                label="Fecha de Nacimiento"
+                text={saved.fechaNacimiento.toLocaleDateString("es-ES")}
+                icon="calendar-clear-outline"
               />
             </>
           )}
         </View>
 
+        <TouchableOpacity
+          onPress={() => router.push("/(modals)/change-password")}
+        >
+          <Text style={styles.changePassword}>Cambiar contraseña</Text>
+        </TouchableOpacity>
+
         {isEditing ? (
           <View style={{ gap: 10 }}>
-            <Button label={isSubmitting ? "Guardando..." : "Guardar"} onPress={handleSave} disabled={isSubmitting} />
-            <Button label="Cancelar" variant="outline" onPress={() => setIsEditing(false)} />
+            <Button
+              label={isSubmitting ? "Guardando..." : "Guardar"}
+              onPress={handleSave}
+              disabled={isSubmitting}
+            />
+            <Button
+              label="Cancelar"
+              variant="primary"
+              onPress={() => {
+                setForm(saved);
+                setDate(saved.fechaNacimiento);
+                setIsEditing(false);
+              }}
+            />
           </View>
         ) : (
           <View style={{ gap: 10 }}>
@@ -163,7 +269,10 @@ export default function Profile() {
       <DatePickerSheet
         ref={dateSheetRef}
         value={date}
-        onConfirm={(d) => { setDate(d); setForm({...form, fechaNacimiento: d}); }}
+        onConfirm={(d) => {
+          setDate(d);
+          setForm({ ...form, fechaNacimiento: d });
+        }}
         onOpenChange={setIsAnySheetOpen}
       />
     </View>

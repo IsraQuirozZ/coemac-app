@@ -64,7 +64,7 @@ export const profileStyles = StyleSheet.create({
   },
   profileCards: {
     gap: 20,
-    marginBottom: 30,
+    // marginBottom: 30,
   },
   // Estilos específicos para la ProfileCard
   profileCard: {
@@ -97,7 +97,7 @@ export const profileStyles = StyleSheet.create({
   },
   errorText: {
     color: colors.error,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 10,
   },
   nameInput: {
@@ -115,5 +115,9 @@ export const profileStyles = StyleSheet.create({
     gap: 10,
     marginTop: 10,
     justifyContent: "center",
+  },
+  changePassword: {
+    color: colors.info,
+    textAlign: "center",
   },
 });

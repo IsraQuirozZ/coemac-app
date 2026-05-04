@@ -6,7 +6,7 @@ import { MemberSelectSheet } from "@/components/ui/MemberSelectSheet";
 import {
   actualizarAgradecimiento,
   crearAgradecimiento,
-  getAgradecimientoById
+  getAgradecimientoById,
 } from "@/services/agradeciminetoService"; // Asegúrate de tener estas importaciones
 import { getUsuarios } from "@/services/usuarioService";
 import { globalStyles } from "@/styles/globals.styles";
@@ -54,7 +54,7 @@ export default function CrearAgradecimiento() {
         const data = await getUsuarios();
         setMembers(data);
       } catch (error) {
-        console.log(error);
+        showToast("Error al cargar los usuarios", "error");
       }
     };
     fetchUsers();
@@ -85,12 +85,14 @@ export default function CrearAgradecimiento() {
     try {
       setSubmitting(true);
       const data = await getAgradecimientoById(id as string);
-      
+
       setForm({
         miembro: data.receptorId || null,
         contactoReferido: data.nombreContacto || "",
         importe: data.importe?.toString() || "",
-        fechaNegocio: data.fechaNegocio ? new Date(data.fechaNegocio) : new Date(),
+        fechaNegocio: data.fechaNegocio
+          ? new Date(data.fechaNegocio)
+          : new Date(),
       });
     } catch (error: any) {
       showToast("Error al cargar los datos", "error");
@@ -115,7 +117,10 @@ export default function CrearAgradecimiento() {
   // ── Validaciones ────────────────────────────────────────────────────────────
   const [isError, setIsError] = useState(false);
   const [errors, setErrors] = useState({
-    miembro: "", contactoReferido: "", importe: "", fechaNegocio: "",
+    miembro: "",
+    contactoReferido: "",
+    importe: "",
+    fechaNegocio: "",
   });
 
   const clearError = (field: keyof typeof errors) => {
@@ -129,9 +134,10 @@ export default function CrearAgradecimiento() {
     const today = new Date();
 
     if (!form.miembro) newErrors.miembro = "Debe seleccionar un miembro.";
-    if (!nombre) newErrors.contactoReferido = "El nombre del contacto es requerido.";
+    if (!nombre)
+      newErrors.contactoReferido = "El nombre del contacto es requerido.";
     if (!importe) newErrors.importe = "El importe es requerido.";
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -139,7 +145,10 @@ export default function CrearAgradecimiento() {
   // ── SUBMIT (CREAR O ACTUALIZAR) ────────────────────────────────────────────
   const handleSubmit = async () => {
     const isValid = validateForm();
-    if (!isValid) { setIsError(true); return; }
+    if (!isValid) {
+      setIsError(true);
+      return;
+    }
 
     try {
       setSubmitting(true);
@@ -179,7 +188,7 @@ export default function CrearAgradecimiento() {
             {isEditMode ? "Editar Agradecimiento" : "Gracias Negocio Cerrado"}
           </Text>
           <Text style={globalStyles.containerDescription}>
-            {isEditMode 
+            {isEditMode
               ? "Modifica los detalles del negocio cerrado."
               : "Agradece por el negocio que has cerrado con el contacto referido."}
           </Text>
@@ -188,40 +197,76 @@ export default function CrearAgradecimiento() {
         <View style={globalStyles.formFields}>
           {/* FormFields (Miembro, Contacto, Importe, Fecha) se quedan igual */}
           <FormField label="Gracias a" icon="megaphone" error={errors.miembro}>
-            <TouchableOpacity onPress={() => memberSheetRef.current?.snapToIndex(0)}>
+            <TouchableOpacity
+              onPress={() => memberSheetRef.current?.snapToIndex(0)}
+            >
               <View style={globalStyles.formSelectContainer}>
-                <Text style={{ color: selectedMember ? colors.primaryText : colors.secondaryText }}>
-                  {selectedMember ? selectedMember.name : "Selecciona un miembro"}
+                <Text
+                  style={{
+                    color: selectedMember
+                      ? colors.primaryText
+                      : colors.secondaryText,
+                  }}
+                >
+                  {selectedMember
+                    ? selectedMember.name
+                    : "Selecciona un miembro"}
                 </Text>
-                <Ionicons name="chevron-down" size={18} color={colors.secondaryText} />
+                <Ionicons
+                  name="chevron-down"
+                  size={18}
+                  color={colors.secondaryText}
+                />
               </View>
             </TouchableOpacity>
           </FormField>
 
-          <FormField label="Por la referencia de (contacto)" icon="person-sharp" error={errors.contactoReferido}>
+          <FormField
+            label="Por la referencia de (contacto)"
+            icon="person-sharp"
+            error={errors.contactoReferido}
+          >
             <TextInput
               placeholder="Nombre del contacto referido"
               placeholderTextColor={colors.secondaryText}
               value={form.contactoReferido}
-              onChangeText={(text) => { setForm({ ...form, contactoReferido: text }); clearError("contactoReferido"); }}
+              onChangeText={(text) => {
+                setForm({ ...form, contactoReferido: text });
+                clearError("contactoReferido");
+              }}
             />
           </FormField>
 
-          <FormField label="Importe del negocio (€)" icon="logo-usd" error={errors.importe}>
+          <FormField
+            label="Importe del negocio (€)"
+            icon="logo-usd"
+            error={errors.importe}
+          >
             <TextInput
               placeholder="0.00"
               placeholderTextColor={colors.secondaryText}
               keyboardType="decimal-pad"
               value={form.importe}
-              onChangeText={(text) => { setForm({ ...form, importe: text }); clearError("importe"); }}
+              onChangeText={(text) => {
+                setForm({ ...form, importe: text });
+                clearError("importe");
+              }}
             />
           </FormField>
 
-          <FormField label="Fecha del negocio cerrado" icon="calendar-clear" error={errors.fechaNegocio}>
-            <TouchableOpacity onPress={() => dateSheetRef.current?.snapToIndex(0)}>
+          <FormField
+            label="Fecha del negocio cerrado"
+            icon="calendar-clear"
+            error={errors.fechaNegocio}
+          >
+            <TouchableOpacity
+              onPress={() => dateSheetRef.current?.snapToIndex(0)}
+            >
               <Text>
                 {form.fechaNegocio.toLocaleDateString("es-ES", {
-                  day: "numeric", month: "short", year: "numeric",
+                  day: "numeric",
+                  month: "short",
+                  year: "numeric",
                 })}
               </Text>
             </TouchableOpacity>
@@ -232,7 +277,9 @@ export default function CrearAgradecimiento() {
           <ActivityIndicator color={colors.primary} style={{ marginTop: 20 }} />
         ) : (
           <Button
-            label={isEditMode ? "Actualizar Agradecimiento" : "Enviar Agradecimiento"}
+            label={
+              isEditMode ? "Actualizar Agradecimiento" : "Enviar Agradecimiento"
+            }
             variant="primary"
             onPress={handleSubmit}
             disabled={submitting}
