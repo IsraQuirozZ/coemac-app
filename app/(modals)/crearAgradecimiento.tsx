@@ -2,13 +2,17 @@ import Button from "@/components/ui/Button";
 import { DatePickerSheet } from "@/components/ui/DatePickerSheet";
 import FormField from "@/components/ui/FormField";
 import HandlerIndicator from "@/components/ui/HandlerIndicator";
-import { MemberSelectSheet } from "@/components/ui/MemberSelectSheet";
+import {
+  MemberOption,
+  MemberSelectSheet,
+} from "@/components/ui/MemberSelectSheet";
+import { useMembers } from "@/hooks/useMembers";
+import { triggerRefresh } from "@/hooks/useRefresh";
 import {
   actualizarAgradecimiento,
   crearAgradecimiento,
   getAgradecimientoById,
 } from "@/services/agradeciminetoService"; // Asegúrate de tener estas importaciones
-import { getUsuarios } from "@/services/usuarioService";
 import { globalStyles } from "@/styles/globals.styles";
 import { colors } from "@/theme/colors";
 import { Ionicons } from "@expo/vector-icons";
@@ -33,8 +37,10 @@ export default function CrearAgradecimiento() {
   const isEditMode = !!id;
 
   // ── Miembros ────────────────────────────────────────────────────────────────
-  const [members, setMembers] = useState<any[]>([]);
-  const [selectedMember, setSelectedMember] = useState<any | null>(null);
+  const { options: memberOptions, loading } = useMembers();
+  const [selectedMember, setSelectedMember] = useState<MemberOption | null>(
+    null,
+  );
   const memberSheetRef = useRef<BottomSheet>(null);
   const dateSheetRef = useRef<BottomSheet>(null);
 
@@ -46,25 +52,6 @@ export default function CrearAgradecimiento() {
   useEffect(() => {
     navigation.setOptions({ gestureEnabled: !isAnySheetOpen });
   }, [isAnySheetOpen]);
-
-  // Carga los usuarios de la BD
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const data = await getUsuarios();
-        setMembers(data);
-      } catch (error) {
-        showToast("Error al cargar los usuarios", "error");
-      }
-    };
-    fetchUsers();
-  }, []);
-
-  const memberOptions = members.map((m) => ({
-    id: m.id,
-    name: `${m.nombre} ${m.apellido}`,
-    company: m.empresa || "Sin empresa",
-  }));
 
   // ── Form state ──────────────────────────────────────────────────────────────
   const [form, setForm] = useState({
@@ -101,18 +88,18 @@ export default function CrearAgradecimiento() {
     }
   };
 
-  // Sincronizar el miembro seleccionado visualmente cuando cargan los datos
+  // SINCRONIZAR MIEMBRO
   useEffect(() => {
-    if (!members.length || !form.miembro) return;
-    const member = members.find((m) => m.id === form.miembro);
+    if (!form.miembro) return;
+
+    const member = memberOptions.find((m) => m.id === form.miembro);
+
     if (member) {
-      setSelectedMember({
-        id: member.id,
-        name: `${member.nombre} ${member.apellido}`,
-        company: member.empresa || "Sin empresa",
-      });
+      setSelectedMember(member);
+    } else {
+      setSelectedMember(null);
     }
-  }, [members, form.miembro]);
+  }, [memberOptions, form.miembro]);
 
   // ── Validaciones ────────────────────────────────────────────────────────────
   const [isError, setIsError] = useState(false);
@@ -168,6 +155,7 @@ export default function CrearAgradecimiento() {
         showToast("Agradecimiento registrado", "success");
       }
 
+      triggerRefresh();
       router.back();
     } catch (error: any) {
       showToast(error.message || "Error al procesar", "error");
@@ -198,7 +186,11 @@ export default function CrearAgradecimiento() {
           {/* FormFields (Miembro, Contacto, Importe, Fecha) se quedan igual */}
           <FormField label="Gracias a" icon="megaphone" error={errors.miembro}>
             <TouchableOpacity
-              onPress={() => memberSheetRef.current?.snapToIndex(0)}
+              onPress={() => {
+                if (!loading) {
+                  memberSheetRef.current?.snapToIndex(0);
+                }
+              }}
             >
               <View style={globalStyles.formSelectContainer}>
                 <Text

@@ -4,6 +4,7 @@ import Button from "@/components/ui/Button";
 import FilterButton from "@/components/ui/FilterButton";
 import SwipeActions from "@/components/ui/SwipeActions";
 import { useAuth } from "@/context/AuthContext";
+import { useRefresh } from "@/hooks/useRefresh";
 import { useToast } from "@/hooks/useToast";
 import {
   eliminarAgradecimiento,
@@ -75,21 +76,7 @@ export default function Agradecimientos() {
         page: pageToLoad,
         limit: 10,
       });
-
-      // Ajusta esto dependiendo de cómo te devuelva los datos tu backend
       const newData = res.data || res;
-
-      // setAgradecimientos((prev) =>
-      //   isLoadMore ? [...prev, ...newData] : newData,
-      // );
-
-      // const total = res.pagination?.total || newData.length;
-      // const totalLoaded = isLoadMore
-      //   ? agradecimientos.length + newData.length
-      //   : newData.length;
-
-      // setHasMore(totalLoaded < total);
-      // setPage(pageToLoad);
 
       setAgradecimientos((prev) => {
         const updated = isLoadMore ? [...prev, ...newData] : newData;
@@ -109,13 +96,9 @@ export default function Agradecimientos() {
     }
   };
 
-  // useFocusEffect(
-  //   useCallback(() => {
-  //     setPage(1);
-  //     setHasMore(true);
-  //     fetchData(1, false);
-  //   }, [filter]),
-  // );
+  useRefresh(() => {
+    fetchData(1, false);
+  });
 
   useEffect(() => {
     setPage(1);

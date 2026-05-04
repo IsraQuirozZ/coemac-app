@@ -4,6 +4,7 @@ import Button from "@/components/ui/Button";
 import FilterButton from "@/components/ui/FilterButton";
 import SwipeActions from "@/components/ui/SwipeActions";
 import { useAuth } from "@/context/AuthContext";
+import { useRefresh } from "@/hooks/useRefresh";
 import { useToast } from "@/hooks/useToast";
 import { globalStyles } from "@/styles/globals.styles";
 import { colors } from "@/theme/colors";
@@ -84,16 +85,6 @@ export default function Referencias() {
 
       const newData = res.data;
 
-      // setReferencias((prev) => (isLoadMore ? [...prev, ...newData] : newData));
-
-      // const total = res.pagination.total;
-      // const totalLoaded = isLoadMore
-      //   ? referencias.length + newData.length
-      //   : newData.length;
-
-      // setHasMore(totalLoaded < total);
-      // setPage(pageToLoad);
-
       setReferencias((prev) => {
         const updated = isLoadMore ? [...prev, ...newData] : newData;
 
@@ -110,18 +101,18 @@ export default function Referencias() {
     }
   };
 
-  // useFocusEffect(
-  //   useCallback(() => {
-  //     setPage(1);
-  //     setHasMore(true);
-  //     fetchData(1, false);
-  //   }, [direccion, tipo]),
-  // );
+  useRefresh(() => {
+    fetchData(1, false);
+  });
 
   useEffect(() => {
-    setPage(1);
-    setHasMore(true);
-    fetchData(1, false);
+    const load = async () => {
+      setPage(1);
+      setHasMore(true);
+      await fetchData(1, false);
+    };
+
+    load();
   }, [direccion, tipo]);
 
   const mapReferenciaToCard = (ref: any) => {

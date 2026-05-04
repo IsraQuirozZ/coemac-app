@@ -81,7 +81,7 @@ export default function ReunionCard({ item }: Props) {
               <Text style={styles.cardNameBold}>{item.nombre}</Text>
               <Text style={styles.cardNameNormal}>
                 {" "}
-                {item.empresa ? `- ${item.empresa}` : ""}
+                {item.empresa ? `- ${item.empresa}` : "- Sin empresa"}
               </Text>
             </Text>
             <Text style={styles.cardDesc} numberOfLines={1}>

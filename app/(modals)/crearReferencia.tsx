@@ -2,7 +2,12 @@ import Button from "@/components/ui/Button";
 import { DatePickerSheet } from "@/components/ui/DatePickerSheet";
 import FormField from "@/components/ui/FormField";
 import HandlerIndicator from "@/components/ui/HandlerIndicator";
-import { MemberSelectSheet } from "@/components/ui/MemberSelectSheet";
+import {
+  MemberOption,
+  MemberSelectSheet,
+} from "@/components/ui/MemberSelectSheet";
+import { useMembers } from "@/hooks/useMembers";
+import { triggerRefresh } from "@/hooks/useRefresh";
 import { crearReferenciaStyles as styles } from "@/styles/crearReferencia";
 import { globalStyles } from "@/styles/globals.styles";
 import { colors } from "@/theme/colors";
@@ -25,7 +30,6 @@ import {
   getReferenciaById,
   updateReferencia,
 } from "../../services/referenciaService";
-import { getUsuarios } from "../../services/usuarioService";
 
 export default function CrearReferencia() {
   const [submitting, setSubmitting] = useState(false);
@@ -35,9 +39,10 @@ export default function CrearReferencia() {
   const isEditMode = !!id;
 
   // MODAL MIEMBROS
-  const [members, setMembers] = useState<any[]>([]);
-  const [selectedMember, setSelectedMember] = useState<any | null>(null);
-
+  const { options: memberOptions, loading } = useMembers();
+  const [selectedMember, setSelectedMember] = useState<MemberOption | null>(
+    null,
+  );
   const memberSheetRef = useRef<BottomSheet>(null);
   const dateSheetRef = useRef<BottomSheet>(null);
 
@@ -64,26 +69,6 @@ export default function CrearReferencia() {
     descripcionReferencia: "",
     tipoReferencia: "interna",
   });
-
-  // CARGAR MIEMBROS
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const data = await getUsuarios();
-        setMembers(data);
-      } catch (error) {
-        console.log(error);
-      }
-    };
-
-    fetchUsers();
-  }, []);
-
-  const memberOptions = members.map((m) => ({
-    id: m.id,
-    name: `${m.nombre} ${m.apellido}`,
-    company: m.empresa || "Sin empresa",
-  }));
 
   // LOAD REFERENCIA (EDIT MODE)
   const [originalReferencia, setOriginalReferencia] = useState<any>(null);
@@ -118,18 +103,14 @@ export default function CrearReferencia() {
 
   // SINCRONIZAR MIEMBRO
   useEffect(() => {
-    if (!members.length || !form.miembro) return;
+    if (!memberOptions.length || !form.miembro) return;
 
-    const member = members.find((m) => m.id === form.miembro);
+    const member = memberOptions.find((m) => m.id === form.miembro);
 
     if (member) {
-      setSelectedMember({
-        id: member.id,
-        name: `${member.nombre} ${member.apellido}`,
-        company: member.empresa || "Sin empresa",
-      });
+      setSelectedMember(member);
     }
-  }, [members, form.miembro]);
+  }, [memberOptions, form.miembro]);
 
   // VALIDACIONES
   const [isError, setIsError] = useState(false);
@@ -263,6 +244,7 @@ export default function CrearReferencia() {
         showToast("Referencia registrada", "success");
       }
 
+      triggerRefresh();
       router.back();
     } catch (error: any) {
       Alert.alert(
@@ -305,7 +287,11 @@ export default function CrearReferencia() {
             error={errors.miembro}
           >
             <TouchableOpacity
-              onPress={() => memberSheetRef.current?.snapToIndex(0)}
+              onPress={() => {
+                if (!loading) {
+                  memberSheetRef.current?.snapToIndex(0);
+                }
+              }}
             >
               <View style={globalStyles.formSelectContainer}>
                 <Text
