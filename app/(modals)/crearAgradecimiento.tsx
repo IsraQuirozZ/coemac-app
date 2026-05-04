@@ -133,7 +133,7 @@ const validateForm = () => {
   const importe = form.importe.trim();
   const nombreRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
 
-  // MIEMBRO
+  // MIEMBROS
   if (!form.miembro)
     newErrors.miembro = "Debe seleccionar un miembro.";
 
