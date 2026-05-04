@@ -9,7 +9,7 @@ import { useToast } from "@/hooks/useToast";
 import {
   eliminarAgradecimiento,
   getAgradecimientos,
-} from "@/services/agradeciminetoService"; // Revisa que la ruta de importación sea correcta
+} from "@/services/agradeciminetoService";
 import { agradecimientosStyles as styles } from "@/styles/agradecimientos.styles";
 import { globalStyles } from "@/styles/globals.styles";
 import { colors } from "@/theme/colors";
@@ -301,7 +301,7 @@ export default function Agradecimientos() {
 
       {!isAdmin && (
         <Button
-          containerStyle={globalStyles.addButton} // Usa globalStyles o styles según prefieras
+          containerStyle={globalStyles.addButton} 
           label="Agregar Agradecimiento"
           variant="add"
           onPress={() => router.push("/(modals)/crearAgradecimiento")}

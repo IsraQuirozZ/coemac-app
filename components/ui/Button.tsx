@@ -11,7 +11,7 @@ import {
 } from "react-native";
 import { colors } from "../../theme/colors";
 
-type ButtonVariant = "primary" | "secondary" | "add" | "close" | "danger";
+type ButtonVariant = "primary" | "secondary" | "add" | "close" | "danger" | "outline"; 
 
 type ButtonProps = {
   label?: string;
@@ -90,6 +90,12 @@ const variantStyles = StyleSheet.create({
     height: 50,
     backgroundColor: colors.error,
   },
+  outline: {
+  height: 50,
+  backgroundColor: "transparent",
+  borderWidth: 2,
+  borderColor: colors.primary,
+},
 });
 
 const textVariantStyles = StyleSheet.create({
@@ -101,6 +107,11 @@ const textVariantStyles = StyleSheet.create({
   add: {},
   close: {},
   danger: {
+    fontSize: 18,
+    fontWeight: "600",
+  },
+  outline: {
+    color: colors.primary,
     fontSize: 18,
     fontWeight: "600",
   },
