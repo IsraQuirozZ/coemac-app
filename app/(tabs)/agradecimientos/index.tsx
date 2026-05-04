@@ -13,8 +13,8 @@ import { agradecimientosStyles as styles } from "@/styles/agradecimientos.styles
 import { globalStyles } from "@/styles/globals.styles";
 import { colors } from "@/theme/colors";
 import * as Haptics from "expo-haptics";
-import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useRef, useState } from "react";
+import { useRouter } from "expo-router";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -79,16 +79,27 @@ export default function Agradecimientos() {
       // Ajusta esto dependiendo de cómo te devuelva los datos tu backend
       const newData = res.data || res;
 
-      setAgradecimientos((prev) =>
-        isLoadMore ? [...prev, ...newData] : newData,
-      );
+      // setAgradecimientos((prev) =>
+      //   isLoadMore ? [...prev, ...newData] : newData,
+      // );
 
-      const total = res.pagination?.total || newData.length; // Ajustar a tu backend
-      const totalLoaded = isLoadMore
-        ? agradecimientos.length + newData.length
-        : newData.length;
+      // const total = res.pagination?.total || newData.length;
+      // const totalLoaded = isLoadMore
+      //   ? agradecimientos.length + newData.length
+      //   : newData.length;
 
-      setHasMore(totalLoaded < total);
+      // setHasMore(totalLoaded < total);
+      // setPage(pageToLoad);
+
+      setAgradecimientos((prev) => {
+        const updated = isLoadMore ? [...prev, ...newData] : newData;
+
+        const total = res.pagination?.total || updated.length;
+        setHasMore(updated.length < total);
+
+        return updated;
+      });
+
       setPage(pageToLoad);
     } catch (error) {
       console.log(error);
@@ -98,13 +109,19 @@ export default function Agradecimientos() {
     }
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      setPage(1);
-      setHasMore(true);
-      fetchData(1, false);
-    }, [filter]),
-  );
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     setPage(1);
+  //     setHasMore(true);
+  //     fetchData(1, false);
+  //   }, [filter]),
+  // );
+
+  useEffect(() => {
+    setPage(1);
+    setHasMore(true);
+    fetchData(1, false);
+  }, [filter]);
 
   const handleDelete = (id: string) => {
     Alert.alert(
@@ -214,16 +231,20 @@ export default function Agradecimientos() {
         ) : (
           <View style={styles.cards}>
             {agradecimientos.map((item) => {
+              const key = `agradecimiento-${item.id}`;
               const isRecibido = filter === "Recibidos";
 
               // 1. Definimos la tarjeta base y la envolvemos en TouchableOpacity para el Detalle
               const card = (
                 <TouchableOpacity
-                  key={item.id}
                   activeOpacity={0.7}
-                  onPress={() =>
-                    router.push(`/(modals)/agradecimientos/${item.id}`)
-                  }
+                  onPress={() => {
+                    if (openSwipeId) {
+                      swipeRefs.current[openSwipeId]?.close();
+                    }
+
+                    router.push(`/(modals)/agradecimientos/${item.id}`);
+                  }}
                 >
                   <AgradecimientoCard
                     isRecibido={isRecibido}
@@ -244,7 +265,7 @@ export default function Agradecimientos() {
               if (!isRecibido) {
                 return (
                   <SwipeActions
-                    key={item.id}
+                    key={key}
                     id={item.id}
                     onOpen={handleOpenSwipe}
                     registerRef={registerSwipeRef}
@@ -282,7 +303,7 @@ export default function Agradecimientos() {
               }
 
               // 3. Si es recibido, simplemente devolvemos la tarjeta con el Touchable
-              return <View key={item.id}>{card}</View>;
+              return <View key={key}>{card}</View>;
             })}
           </View>
         )}
