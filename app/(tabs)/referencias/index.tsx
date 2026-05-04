@@ -8,8 +8,8 @@ import { useToast } from "@/hooks/useToast";
 import { globalStyles } from "@/styles/globals.styles";
 import { colors } from "@/theme/colors";
 import * as Haptics from "expo-haptics";
-import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useRef, useState } from "react";
+import { useRouter } from "expo-router";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -84,14 +84,23 @@ export default function Referencias() {
 
       const newData = res.data;
 
-      setReferencias((prev) => (isLoadMore ? [...prev, ...newData] : newData));
+      // setReferencias((prev) => (isLoadMore ? [...prev, ...newData] : newData));
 
-      const total = res.pagination.total;
-      const totalLoaded = isLoadMore
-        ? referencias.length + newData.length
-        : newData.length;
+      // const total = res.pagination.total;
+      // const totalLoaded = isLoadMore
+      //   ? referencias.length + newData.length
+      //   : newData.length;
 
-      setHasMore(totalLoaded < total);
+      // setHasMore(totalLoaded < total);
+      // setPage(pageToLoad);
+
+      setReferencias((prev) => {
+        const updated = isLoadMore ? [...prev, ...newData] : newData;
+
+        setHasMore(updated.length < res.pagination.total);
+        return updated;
+      });
+
       setPage(pageToLoad);
     } catch (error) {
       console.log(error);
@@ -101,13 +110,19 @@ export default function Referencias() {
     }
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      setPage(1);
-      setHasMore(true);
-      fetchData(1, false);
-    }, [direccion, tipo]),
-  );
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     setPage(1);
+  //     setHasMore(true);
+  //     fetchData(1, false);
+  //   }, [direccion, tipo]),
+  // );
+
+  useEffect(() => {
+    setPage(1);
+    setHasMore(true);
+    fetchData(1, false);
+  }, [direccion, tipo]);
 
   const mapReferenciaToCard = (ref: any) => {
     const isReceived = direccion === "Recibidas";
@@ -257,6 +272,7 @@ export default function Referencias() {
         ) : (
           <View style={styles.referenceCards}>
             {referencias.map((ref) => {
+              const key = `ref-${ref.id}`;
               const mappedRef = mapReferenciaToCard(ref);
               const dateToShow = ref.fechaReferencia || ref.createdAt;
 
@@ -265,7 +281,6 @@ export default function Referencias() {
 
               const card = (
                 <TouchableOpacity
-                  key={ref.id}
                   onPress={() => router.push(`/(modals)/referencias/${ref.id}`)}
                 >
                   <ReferenceCard
@@ -285,7 +300,7 @@ export default function Referencias() {
               if (!isReceived) {
                 return (
                   <SwipeActions
-                    key={ref.id}
+                    key={key}
                     id={ref.id}
                     onOpen={handleOpenSwipe}
                     registerRef={registerSwipeRef}
@@ -321,7 +336,7 @@ export default function Referencias() {
                   </SwipeActions>
                 );
               }
-              return <View key={ref.id}>{card}</View>;
+              return <View key={key}>{card}</View>;
             })}
           </View>
         )}

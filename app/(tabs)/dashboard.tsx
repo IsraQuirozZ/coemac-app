@@ -8,8 +8,8 @@ import { dashboardStyles as styles } from "@/styles/dashboard.styles";
 import { globalStyles } from "@/styles/globals.styles";
 import { colors } from "@/theme/colors";
 import { Ionicons } from "@expo/vector-icons";
-import { router, useFocusEffect } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
+import { router } from "expo-router";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   RefreshControl,
@@ -58,21 +58,13 @@ export default function Dashboard() {
 
   useEffect(() => {
     loadData(selectedPeriod);
-  }, []);
+  }, [selectedPeriod, user]);
 
   const onRefresh = async () => {
     setRefreshing(true);
     await loadData();
     setRefreshing(false);
   };
-
-  useFocusEffect(
-    useCallback(() => {
-      if (user) {
-        loadData(selectedPeriod);
-      }
-    }, [selectedPeriod, user]),
-  );
 
   const formattedDate = (dateStr: string) => {
     const date = new Date(dateStr);
@@ -267,9 +259,10 @@ export default function Dashboard() {
                   No hay actividad para mostrar.
                 </Text>
               ) : (
-                filteredActivity.map((item, idx) => {
+                filteredActivity.map((item) => {
                   return (
                     <ActivityCard
+                      key={`${item.tipo}-${item.id}`}
                       type={item.tipo}
                       title={item.title}
                       detail={item.detail}
