@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/useToast";
 import {
   eliminarAgradecimiento,
   getAgradecimientos,
-} from "@/services/agradeciminetoService"; // Revisa que la ruta de importación sea correcta
+} from "@/services/agradeciminetoService";
 import { agradecimientosStyles as styles } from "@/styles/agradecimientos.styles";
 import { globalStyles } from "@/styles/globals.styles";
 import { colors } from "@/theme/colors";
@@ -79,18 +79,6 @@ export default function Agradecimientos() {
       // Ajusta esto dependiendo de cómo te devuelva los datos tu backend
       const newData = res.data || res;
 
-      // setAgradecimientos((prev) =>
-      //   isLoadMore ? [...prev, ...newData] : newData,
-      // );
-
-      // const total = res.pagination?.total || newData.length;
-      // const totalLoaded = isLoadMore
-      //   ? agradecimientos.length + newData.length
-      //   : newData.length;
-
-      // setHasMore(totalLoaded < total);
-      // setPage(pageToLoad);
-
       setAgradecimientos((prev) => {
         const updated = isLoadMore ? [...prev, ...newData] : newData;
 
@@ -109,13 +97,7 @@ export default function Agradecimientos() {
     }
   };
 
-  // useFocusEffect(
-  //   useCallback(() => {
-  //     setPage(1);
-  //     setHasMore(true);
-  //     fetchData(1, false);
-  //   }, [filter]),
-  // );
+
 
   useEffect(() => {
     setPage(1);
@@ -318,7 +300,7 @@ export default function Agradecimientos() {
 
       {!isAdmin && (
         <Button
-          containerStyle={globalStyles.addButton} // Usa globalStyles o styles según prefieras
+          containerStyle={globalStyles.addButton} 
           label="Agregar Agradecimiento"
           variant="add"
           onPress={() => router.push("/(modals)/crearAgradecimiento")}
