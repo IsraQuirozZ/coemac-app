@@ -10,8 +10,8 @@ import { globalStyles } from "@/styles/globals.styles";
 import { reunionesStyles as styles } from "@/styles/reuniones.styles";
 import { colors } from "@/theme/colors";
 import * as Haptics from "expo-haptics";
-import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useRef, useState } from "react";
+import { useRouter } from "expo-router";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -22,6 +22,26 @@ import {
 } from "react-native";
 import { Swipeable } from "react-native-gesture-handler";
 
+type ReunionItem = {
+  id: string;
+  fecha: string;
+  descripcion?: string;
+  estado: "PENDIENTE" | "CONFIRMADA" | "REALIZADA" | "CANCELADA";
+  viewedAt?: string | null;
+
+  creador: {
+    nombre: string;
+    apellido: string;
+    empresa?: string | null;
+  };
+
+  invitado: {
+    nombre: string;
+    apellido: string;
+    empresa?: string | null;
+  };
+};
+
 export default function Reuniones() {
   const { user } = useAuth();
   const isAdmin = user?.rol === "ADMIN";
@@ -31,9 +51,6 @@ export default function Reuniones() {
   const { showToast } = useToast();
 
   const [loading, setLoading] = useState(true);
-
-  // TOGGLE DE DESCRIPCIÓN EN CARD
-  const [openCardId, setOpenCardId] = useState<string | null>(null);
 
   // SWIPEABLE
   const swipeRefs = useRef<{ [key: string]: Swipeable | null }>({});
@@ -53,7 +70,7 @@ export default function Reuniones() {
   };
 
   // FETCH REUNIONES
-  const [reuniones, setReuniones] = useState<any[]>([]);
+  const [reuniones, setReuniones] = useState<ReunionItem[]>([]);
   const [direccion, setDireccion] = useState<"Recibidas" | "Enviadas">(
     "Recibidas",
   );
@@ -80,14 +97,23 @@ export default function Reuniones() {
 
       const newData = rew.data;
 
-      setReuniones((prev) => (isLoadMore ? [...prev, ...newData] : newData));
+      // setReuniones((prev) => (isLoadMore ? [...prev, ...newData] : newData));
 
-      const total = rew.pagination.total;
-      const totalLoaded = isLoadMore
-        ? reuniones.length + newData.length
-        : newData.length;
+      // const total = rew.pagination.total;
+      // const totalLoaded = isLoadMore
+      //   ? reuniones.length + newData.length
+      //   : newData.length;
 
-      setHasMore(totalLoaded < total);
+      // setHasMore(totalLoaded < total);
+      // setPage(pageToLoad);
+
+      setReuniones((prev) => {
+        const updated = isLoadMore ? [...prev, ...newData] : newData;
+
+        setHasMore(updated.length < rew.pagination.total);
+        return updated;
+      });
+
       setPage(pageToLoad);
     } catch (error) {
       console.log(error);
@@ -97,7 +123,7 @@ export default function Reuniones() {
     }
   };
 
-  const mapReunionToCard = (item: any) => {
+  const mapReunionToCard = (item: ReunionItem) => {
     const fecha = new Date(item.fecha);
 
     const dia = fecha.getDate().toString();
@@ -120,13 +146,19 @@ export default function Reuniones() {
     };
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      setPage(1);
-      setHasMore(true);
-      fetchData(1, false);
-    }, [direccion]),
-  );
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     setPage(1);
+  //     setHasMore(true);
+  //     fetchData(1, false);
+  //   }, [direccion]),
+  // );
+
+  useEffect(() => {
+    setPage(1);
+    setHasMore(true);
+    fetchData(1, false);
+  }, [direccion]);
 
   // DELETE SWIPEABLE
   // DELETE
@@ -168,7 +200,14 @@ export default function Reuniones() {
   return (
     <View style={{ flex: 1 }}>
       <Header title="Reuniones" />
-      <ScrollView contentContainerStyle={globalStyles.container}>
+      <ScrollView
+        contentContainerStyle={globalStyles.container}
+        onScrollBeginDrag={() => {
+          if (openSwipeId) {
+            swipeRefs.current[openSwipeId]?.close();
+          }
+        }}
+      >
         {/* Título y subtítulo */}
         <View style={globalStyles.containerText}>
           <Text style={globalStyles.containerTitle}>
@@ -200,7 +239,6 @@ export default function Reuniones() {
               active={direccion === "Recibidas"}
               onPress={() => {
                 setDireccion("Recibidas");
-                setOpenCardId(null);
               }}
             />
             <FilterButton
@@ -209,7 +247,6 @@ export default function Reuniones() {
               active={direccion === "Enviadas"}
               onPress={() => {
                 setDireccion("Enviadas");
-                setOpenCardId(null);
               }}
             />
           </View>
@@ -222,6 +259,7 @@ export default function Reuniones() {
         ) : (
           <View style={globalStyles.formFields}>
             {reuniones.map((item) => {
+              const key = `reunion-${item.id}`;
               const mapped = mapReunionToCard(item);
 
               const isReceived = direccion === "Recibidas";
@@ -238,7 +276,7 @@ export default function Reuniones() {
               if (!isReceived && isEditable) {
                 return (
                   <SwipeActions
-                    key={item.id}
+                    key={key}
                     id={item.id}
                     onOpen={handleOpenSwipe}
                     registerRef={registerSwipeRef}
@@ -275,7 +313,7 @@ export default function Reuniones() {
                 );
               }
 
-              return <View key={item.id}>{card}</View>;
+              return <View key={key}>{card}</View>;
             })}
           </View>
         )}
@@ -294,7 +332,6 @@ export default function Reuniones() {
           variant="add"
           onPress={() => {
             router.push("/(modals)/crearReunion");
-            setOpenCardId(null);
           }}
         />
       )}
