@@ -78,10 +78,9 @@ export default function ReunionCard({ item }: Props) {
           {/* Info */}
           <View style={styles.cardInfo}>
             <Text style={styles.cardName} numberOfLines={1}>
-              <Text style={styles.cardNameBold}>{item.nombre}</Text>
+              <Text style={styles.cardNameBold}>{item.nombre} - </Text>
               <Text style={styles.cardNameNormal}>
-                {" "}
-                {item.empresa ? `- ${item.empresa}` : "- Sin empresa"}
+                {item.empresa ? `${item.empresa}` : "Sin empresa"}
               </Text>
             </Text>
             <Text style={styles.cardDesc} numberOfLines={1}>
@@ -178,8 +177,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.secondaryText,
   },
-  cardName: { fontSize: 16 },
-  cardNameNormal: { color: colors.secondaryText },
+  cardName: {
+    fontSize: 16,
+  },
+  cardNameNormal: { color: colors.secondaryText, fontSize: 14 },
   cardDesc: {
     fontSize: 12,
     color: colors.secondaryText,

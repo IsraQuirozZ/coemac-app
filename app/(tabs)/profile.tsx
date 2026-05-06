@@ -24,7 +24,7 @@ import { useAuth } from "../../context/AuthContext";
 
 export default function Profile() {
   const { showToast } = useToast();
-  const { logout } = useAuth();
+  const { logout, user } = useAuth();
   const dateSheetRef = useRef<BottomSheet>(null);
   const router = useRouter();
 
@@ -234,6 +234,14 @@ export default function Profile() {
             </>
           )}
         </View>
+
+        {user?.rol === "ADMIN" && (
+          <TouchableOpacity
+            onPress={() => router.push("/(modals)/manage-users")}
+          >
+            <Text style={styles.changePassword}>Administrar usuarios</Text>
+          </TouchableOpacity>
+        )}
 
         <TouchableOpacity
           onPress={() => router.push("/(modals)/change-password")}
