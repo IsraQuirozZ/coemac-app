@@ -98,6 +98,10 @@ export default function RootLayout() {
               name="(modals)/change-password"
               options={{ presentation: "modal" }}
             />
+            <Stack.Screen
+              name="(modals)/manage-users"
+              options={{ presentation: "modal" }}
+             />
           </Stack>
         </ToastProvider>
       </AuthProvider>
