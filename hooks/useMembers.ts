@@ -4,6 +4,10 @@ import { useEffect, useState } from "react";
 
 let cachedMembers: any[] | null = null;
 
+export const invalidateMembersCache = () => {
+  cachedMembers = null;
+};
+
 export const useMembers = () => {
   const [members, setMembers] = useState<any[]>(cachedMembers || []);
   const [options, setOptions] = useState<any[]>(
@@ -18,10 +22,12 @@ export const useMembers = () => {
       try {
         const data = await getUsuarios();
 
-        cachedMembers = data;
+        const activeMembers = data.filter((user: any) => user.activo);
 
-        setMembers(data);
-        setOptions(mapMembersToOptions(data));
+        cachedMembers = activeMembers;
+
+        setMembers(activeMembers);
+        setOptions(mapMembersToOptions(activeMembers));
       } catch (error) {
         console.log(error);
       } finally {

@@ -32,6 +32,12 @@ export const st = StyleSheet.create({
     fontSize: 15,
   },
 
+  filterContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
   // ── Card ──
   card: {
     backgroundColor: "#FFFFFF",
