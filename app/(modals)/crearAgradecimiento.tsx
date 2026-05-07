@@ -21,6 +21,7 @@ import { useLocalSearchParams, useNavigation, useRouter } from "expo-router"; //
 import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Text,
   TextInput,
   TouchableOpacity,
@@ -114,38 +115,37 @@ export default function CrearAgradecimiento() {
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
   };
 
-const validateForm = () => {
-  const newErrors: any = {};
-  const nombre  = form.contactoReferido.trim();
-  const importe = form.importe.trim();
-  const nombreRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
+  const validateForm = () => {
+    const newErrors: any = {};
+    const nombre = form.contactoReferido.trim();
+    const importe = form.importe.trim();
+    const nombreRegex = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
 
-  // MIEMBROS
-  if (!form.miembro)
-    newErrors.miembro = "Debe seleccionar un miembro.";
+    // MIEMBROS
+    if (!form.miembro) newErrors.miembro = "Debe seleccionar un miembro.";
 
-  // CONTACTO REFERIDO 
-  if (!nombre)
-    newErrors.contactoReferido = "El nombre del contacto es requerido.";
-  else if (nombre.length < 3)
-    newErrors.contactoReferido = "Debe tener al menos 3 caracteres.";
-  else if (!nombreRegex.test(nombre))
-    newErrors.contactoReferido = "Solo puede contener letras y espacios.";
+    // CONTACTO REFERIDO
+    if (!nombre)
+      newErrors.contactoReferido = "El nombre del contacto es requerido.";
+    else if (nombre.length < 3)
+      newErrors.contactoReferido = "Debe tener al menos 3 caracteres.";
+    else if (!nombreRegex.test(nombre))
+      newErrors.contactoReferido = "Solo puede contener letras y espacios.";
 
-  // IMPORTE 
-  if (!importe) {
-    newErrors.importe = "El importe es requerido.";
-  } else {
-    const valor = parseFloat(importe.replace(",", "."));
-    if (isNaN(valor))
-      newErrors.importe = "Introduce un importe válido (ej: 1500 o 1500,00).";
-    else if (valor <= 0)
-      newErrors.importe = "El importe debe ser mayor que 0.";
-  }
+    // IMPORTE
+    if (!importe) {
+      newErrors.importe = "El importe es requerido.";
+    } else {
+      const valor = parseFloat(importe.replace(",", "."));
+      if (isNaN(valor))
+        newErrors.importe = "Introduce un importe válido (ej: 1500 o 1500,00).";
+      else if (valor <= 0)
+        newErrors.importe = "El importe debe ser mayor que 0.";
+    }
 
-  setErrors(newErrors);
-  return Object.keys(newErrors).length === 0;
-};
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   // ── SUBMIT (CREAR O ACTUALIZAR) ────────────────────────────────────────────
   const handleSubmit = async () => {
@@ -176,6 +176,13 @@ const validateForm = () => {
       triggerRefresh();
       router.back();
     } catch (error: any) {
+      Alert.alert(
+        "Error",
+        error.message ||
+          (isEditMode
+            ? "Error al actualizar el agradecimiento"
+            : "Error al registrar el agradecimiento"),
+      );
       showToast(error.message || "Error al procesar", "error");
     } finally {
       setSubmitting(false);
