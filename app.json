@@ -14,6 +14,7 @@
       "backgroundColor": "#F7F9F8"
     },
     "android": {
+      "package": "com.coemac.networking",
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/icon.png",
@@ -46,6 +47,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "9b088997-a11a-4027-ae2a-b193437e7648"
+      }
+    },
+    "owner": "coemac"
   }
 }
