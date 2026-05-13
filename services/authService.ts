@@ -1,5 +1,5 @@
-const API_URL = "http://192.168.1.136:3000/api"; // Isra
-// const API_URL = "http://192.168.0.14:3000/api"; // Cordova
+// const API_URL = "http://192.168.1.64:3000/api"; // Dev
+import { API_URL } from "../constants/api";
 
 type LoginResponse = {
   token: string;
