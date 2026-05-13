@@ -1,6 +1,7 @@
 import { ToastProvider } from "@/hooks/useToast";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { useEffect } from "react";
+import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AuthProvider, useAuth } from "../context/AuthContext";
 import { colors } from "../theme/colors";
@@ -59,48 +60,92 @@ export default function RootLayout() {
 
             <Stack.Screen
               name="(modals)/crearReferencia"
-              options={{ presentation: "modal" }}
+              options={{ 
+                presentation: Platform.OS === "ios" ? "modal" : undefined,
+                animation: Platform.OS === "android" ? "slide_from_bottom" : undefined,
+                gestureEnabled: true,
+               }}
             />
             <Stack.Screen
               name="(modals)/crearAgradecimiento"
-              options={{ presentation: "modal" }}
+              options={{ 
+                presentation: Platform.OS === "ios" ? "modal" : undefined,
+                animation: Platform.OS === "android" ? "slide_from_bottom" : undefined,
+                gestureEnabled: true,
+               }}
             />
             <Stack.Screen
               name="(modals)/envioAgradecimiento"
-              options={{ presentation: "modal" }}
+              options={{ 
+                presentation: Platform.OS === "ios" ? "modal" : undefined,
+                animation: Platform.OS === "android" ? "slide_from_bottom" : undefined,
+                gestureEnabled: true,
+               }}
             />
             <Stack.Screen
               name="(modals)/crearReunion"
-              options={{ presentation: "modal" }}
+              options={{ 
+                presentation: Platform.OS === "ios" ? "modal" : undefined,
+                animation: Platform.OS === "android" ? "slide_from_bottom" : undefined,
+                gestureEnabled: true,
+              }}
             />
             <Stack.Screen
               name="(modals)/informe"
-              options={{ presentation: "modal" }}
+              options={{ 
+                presentation: Platform.OS === "ios" ? "modal" : undefined,
+                animation: Platform.OS === "android" ? "slide_from_bottom" : undefined,
+                gestureEnabled: true,
+              }}
             />
             <Stack.Screen
               name="(modals)/informeEntity"
-              options={{ presentation: "modal" }}
+              options={{ 
+                presentation: Platform.OS === "ios" ? "modal" : undefined,
+                animation: Platform.OS === "android" ? "slide_from_bottom" : undefined,
+                gestureEnabled: true,
+               }}
             />
 
             <Stack.Screen
               name="(modals)/referencias/[id]"
-              options={{ presentation: "modal" }}
+              options={{ 
+                presentation: Platform.OS === "ios" ? "modal" : undefined,
+                animation: Platform.OS === "android" ? "slide_from_bottom" : undefined,
+                gestureEnabled: true,
+               }}
             />
             <Stack.Screen
               name="(modals)/reuniones/[id]"
-              options={{ presentation: "modal" }}
+              options={{ 
+                presentation: Platform.OS === "ios" ? "modal" : undefined,
+                animation: Platform.OS === "android" ? "slide_from_bottom" : undefined,
+                gestureEnabled: true,
+              }}
             />
             <Stack.Screen
               name="(modals)/agradecimientos/[id]"
-              options={{ presentation: "modal" }}
+              options={{ 
+                presentation: Platform.OS === "ios" ? "modal" : undefined,
+                animation: Platform.OS === "android" ? "slide_from_bottom" : undefined,
+                gestureEnabled: true,
+               }}
             />
             <Stack.Screen
               name="(modals)/change-password"
-              options={{ presentation: "modal" }}
+              options={{ 
+                presentation: Platform.OS === "ios" ? "modal" : undefined,
+                animation: Platform.OS === "android" ? "slide_from_bottom" : undefined,
+                gestureEnabled: true,
+              }}
             />
             <Stack.Screen
               name="(modals)/manage-users"
-              options={{ presentation: "modal" }}
+              options={{ 
+                presentation: Platform.OS === "ios" ? "modal" : undefined,
+                animation: Platform.OS === "android" ? "slide_from_bottom" : undefined,
+                gestureEnabled: true,
+               }}
              />
           </Stack>
         </ToastProvider>
