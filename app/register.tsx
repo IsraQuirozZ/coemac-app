@@ -83,8 +83,8 @@ export default function RegisterScreen() {
 
     password: (value: string) => {
       if (!value) return "La contraseña es obligatoria";
-      if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&]).{8,}$/.test(value))
-        return "Debe tener mayúscula, minúscula, número y símbolo";
+      if (!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/.test(value))
+        return "Debe tener mayúscula, minúscula, número y un caracter especial";
       return "";
     },
 
