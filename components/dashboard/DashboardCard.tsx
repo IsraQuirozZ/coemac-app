@@ -1,7 +1,7 @@
 import { colors } from "@/theme/colors";
 import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Dimensions, StyleSheet, Text, View } from "react-native";
 
 type DashboardCardProps = {
   iconName: React.ComponentProps<typeof Ionicons>["name"];
@@ -10,6 +10,9 @@ type DashboardCardProps = {
   lastDate: string;
   fullWidth?: boolean;
 };
+
+// Ancho exacto: pantalla
+const CARD_WIDTH = (Dimensions.get("window").width - 48 - 19) / 2;
 
 export default function DashboardCard({
   iconName,
@@ -24,7 +27,6 @@ export default function DashboardCard({
         <Ionicons name={iconName} size={30} color={colors.primary} />
         <Text style={styles.statsNumber}>{value}</Text>
       </View>
-
       <Text style={styles.description}>{description}</Text>
       <Text style={styles.date}>Última: {lastDate}</Text>
     </View>
@@ -33,7 +35,7 @@ export default function DashboardCard({
 
 const styles = StyleSheet.create({
   card: {
-    width: "47%",
+    width: CARD_WIDTH,   //valor en píxeles exactos, funciona igual en iOS y Android
     height: 115,
     backgroundColor: "white",
     borderColor: colors.border,
@@ -43,7 +45,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.04,
     shadowOffset: { width: 0, height: 1 },
     shadowRadius: 4,
-    elevation: 2, // Para Android
+    elevation: 2,
     padding: 12,
     justifyContent: "space-between",
   },
