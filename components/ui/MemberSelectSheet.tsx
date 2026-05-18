@@ -3,10 +3,9 @@ import { colors } from "@/theme/colors";
 import { Ionicons } from "@expo/vector-icons";
 import BottomSheet, {
   BottomSheetBackdrop,
-  BottomSheetScrollView,
 } from "@gorhom/bottom-sheet";
 import { forwardRef, useMemo } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 export type MemberOption = {
   id: string;
@@ -24,19 +23,10 @@ type Props = {
 };
 
 export const MemberSelectSheet = forwardRef<BottomSheet, Props>(
-  (
-    {
-      options,
-      selected,
-      onSelect,
-      onOpenChange,
-      title = "Selecciona un miembro",
-    },
-    ref,
-  ) => {
+  ({ options, selected, onSelect, onOpenChange, title = "Selecciona un miembro" }, ref) => {
     const { user } = useAuth();
 
-    const snapPoints = useMemo(() => ["40%", "60%"], []);
+    const snapPoints = useMemo(() => ["50%"], []);
 
     const renderBackdrop = (props: any) => (
       <BottomSheetBackdrop
@@ -49,11 +39,10 @@ export const MemberSelectSheet = forwardRef<BottomSheet, Props>(
       />
     );
 
-    const filteredOption = useMemo(() => {
-      return options.filter(
-        (item) => item.id !== user?.id && item.rol !== "ADMIN",
-      );
-    }, [options, user?.id]);
+    const filteredOption = useMemo(
+      () => options.filter((item) => item.id !== user?.id && item.rol !== "ADMIN"),
+      [options, user?.id],
+    );
 
     return (
       <BottomSheet
@@ -62,99 +51,94 @@ export const MemberSelectSheet = forwardRef<BottomSheet, Props>(
         snapPoints={snapPoints}
         enablePanDownToClose
         enableHandlePanningGesture
-        enableContentPanningGesture={false}
+        enableContentPanningGesture={false}  
         enableOverDrag={false}
         backgroundStyle={styles.background}
         handleIndicatorStyle={styles.handleIndicator}
         backdropComponent={renderBackdrop}
         enableDynamicSizing={false}
         android_keyboardInputMode="adjustResize"
-        onChange={(index) => {
-          onOpenChange?.(index >= 0);
-        }}
+        onChange={(index) => onOpenChange?.(index >= 0)}
       >
-        <BottomSheetScrollView
+        {/* ScrollView en lugar de BottomSheetScrollView
+            En Android, BottomSheetScrollView tiene conflictos de gestos
+            que bloquean el scroll. */}
+
+        <ScrollView
+          style={styles.scrollView}
           contentContainerStyle={styles.container}
-          showsVerticalScrollIndicator={false}
-          enableContentPanningGesture={true}
+          showsVerticalScrollIndicator={true}
+          bounces={false}
+          nestedScrollEnabled        
+          keyboardShouldPersistTaps="handled"
         >
           <Text style={styles.title}>{title}</Text>
 
-          {filteredOption.map((item) => {
-            const isSelected = selected?.id === item.id;
+          {filteredOption.length === 0 ? (
+            <Text style={styles.empty}>No hay miembros disponibles.</Text>
+          ) : (
+            filteredOption.map((item) => {
+              const isSelected = selected?.id === item.id;
+              const initials = item.name
+                .split(" ").slice(0, 2).map((w) => w[0]).join("").toUpperCase();
 
-            return (
-              <TouchableOpacity
-                key={item.id}
-                onPress={() => {
-                  onSelect(item);
-                  (ref as any)?.current?.close();
-                }}
-                style={[styles.item, isSelected && styles.itemSelected]}
-              >
-                <View style={styles.itemContent}>
-                  <View style={styles.avatar}>
-                    <Text style={{ color: "#fff" }}>
-                      {item.name
-                        .split(" ")
-                        .slice(0, 2)
-                        .map((word) => word[0])
-                        .join("")
-                        .toUpperCase()}
+              return (
+                <TouchableOpacity
+                  key={item.id}
+                  onPress={() => {
+                    onSelect(item);
+                    (ref as any)?.current?.close();
+                  }}
+                  style={[styles.item, isSelected && styles.itemSelected]}
+                >
+                  <View style={styles.itemContent}>
+                    <View style={styles.avatar}>
+                      <Text style={styles.avatarText}>{initials}</Text>
+                    </View>
+                    <Text
+                      style={[styles.text, isSelected && styles.textSelected]}
+                      numberOfLines={1}
+                    >
+                      {item.name}{" "}
+                      <Text style={styles.company}>- {item.company}</Text>
                     </Text>
                   </View>
-                  <Text
-                    style={
-                      isSelected
-                        ? [styles.text, styles.textSelected]
-                        : styles.text
-                    }
-                  >
-                    {item.name}{" "}
-                    <Text style={{ color: colors.secondaryText }}>
-                      {" "}
-                      - {item.company}
-                    </Text>
-                  </Text>
-                </View>
 
-                {isSelected && (
-                  <Ionicons name="checkmark" size={18} color={colors.primary} />
-                )}
-              </TouchableOpacity>
-            );
-          })}
-        </BottomSheetScrollView>
+                  {isSelected && (
+                    <Ionicons name="checkmark" size={18} color={colors.primary} />
+                  )}
+                </TouchableOpacity>
+              );
+            })
+          )}
+        </ScrollView>
       </BottomSheet>
     );
   },
 );
 
-export const styles = StyleSheet.create({
+const styles = StyleSheet.create({
   background: {
     borderTopLeftRadius: 40,
     borderTopRightRadius: 40,
-    padding: 20,
-    gap: 15,
-    // sombra iOS
     shadowColor: "#000",
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.1,
     shadowRadius: 10,
-
-    // sombra Android
     elevation: 10,
   },
   handleIndicator: {
     width: 40,
     backgroundColor: "#ccc",
   },
+  scrollView: {
+    flex: 1,
+  },
   container: {
     paddingHorizontal: 16,
     paddingTop: 10,
-    paddingBottom: 80,
+    paddingBottom: 40,
   },
-
   title: {
     fontSize: 16,
     fontWeight: "600",
@@ -162,10 +146,11 @@ export const styles = StyleSheet.create({
     marginVertical: 12,
     color: colors.primaryText,
   },
-  dateTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-    paddingLeft: 8,
+  empty: {
+    textAlign: "center",
+    color: colors.secondaryText,
+    marginTop: 20,
+    fontSize: 14,
   },
   item: {
     paddingVertical: 14,
@@ -175,7 +160,6 @@ export const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-
   itemSelected: {
     backgroundColor: colors.soft,
   },
@@ -183,24 +167,33 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     gap: 12,
+    flex: 1,
   },
   avatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: colors.primary,
     alignItems: "center",
     justifyContent: "center",
-    // marginRight: 12,
+    flexShrink: 0,
   },
-
+  avatarText: {
+    color: "#fff",
+    fontSize: 13,
+    fontWeight: "700",
+  },
   text: {
     fontSize: 15,
     color: colors.primaryText,
+    flex: 1,
   },
-
   textSelected: {
     color: colors.primary,
     fontWeight: "600",
+  },
+  company: {
+    color: colors.secondaryText,
+    fontWeight: "400",
   },
 });
