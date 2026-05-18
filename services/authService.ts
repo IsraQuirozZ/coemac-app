@@ -1,8 +1,7 @@
 // const API_URL = "http://192.168.1.64:3000/api"; // Dev
 const API_URL = "http://192.168.0.14:3000/api"; // Cordova
   
-// import { API_URL } from "../constants/api";fffffffffffaa
-
+// import { API_URL } from "../constants/api";
 type LoginResponse = {
   token: string;
 };
