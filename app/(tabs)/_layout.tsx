@@ -38,23 +38,24 @@ export default function TabsLayout() {
 
           return (
             <View style={styles.item}>
-              <Ionicons
-                name={iconName}
-                size={30}
-                color={focused ? colors.light : colors.terciaryText}
-              />
-              <Text
-                numberOfLines={1}
-                style={[
-                  styles.label,
-                  {
-                    color: focused ? colors.primary : colors.secondaryText,
-                  },
-                ]}
-              >
-                {label}
-              </Text>
-            </View>
+      <Ionicons
+        name={iconName}
+        size={28}
+        color={focused ? colors.primary : "#777"}
+      />
+      <Text
+        numberOfLines={1}
+        style={[
+          styles.label,
+          {
+            color: focused ? colors.primary : "#777",
+            fontSize: 12,
+          },
+        ]}
+      >
+        {label}
+      </Text>
+    </View>
           );
         },
       })}
