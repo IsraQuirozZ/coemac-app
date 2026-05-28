@@ -14,7 +14,6 @@ export default function verifyEmailScreen() {
       try {
         const response = await verifyEmailRequest(token);
 
-      if (response.message === "Account verified successfully") {
           setStatus("success");
           setTimeout(() => {
             router.replace({
@@ -22,7 +21,6 @@ export default function verifyEmailScreen() {
               params: { email: response.email },
             });
           }, 2000);
-        }
       } catch (error) {
         setStatus("error");
       }
