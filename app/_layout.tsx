@@ -20,11 +20,12 @@ function AuthGate() {
     const inAuthScreen =
       segments[0] === "login" ||
       segments[0] === "register" ||
-      segments[0] === "verifyEmail" ||
       segments[0] === "forgotPassword" ||
       segments[0] === "resetPassword";
 
-    if (!token && !inAuthScreen) {
+    const inVerifyEmail = segments[0] === "verifyEmail";
+
+    if (!token && !inAuthScreen && !inVerifyEmail) {
       router.replace("/login");
     }
 

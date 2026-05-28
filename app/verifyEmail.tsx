@@ -3,7 +3,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { Text, View } from "react-native";
 
-export default function verifyEmailScreen() {
+export default function VerifyEmailScreen() {
   const { token } = useLocalSearchParams<{ token: string }>();
   const router = useRouter();
 
