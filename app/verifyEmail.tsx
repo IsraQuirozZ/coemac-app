@@ -14,15 +14,14 @@ export default function verifyEmailScreen() {
       try {
         const response = await verifyEmailRequest(token);
 
-        if (response.success) {
+      if (response.message === "Account verified successfully") {
           setStatus("success");
-
           setTimeout(() => {
             router.replace({
               pathname: "/login",
-              params: { email: response.data.email },
+              params: { email: response.email },
             });
-          }, 3000);
+          }, 2000);
         }
       } catch (error) {
         setStatus("error");

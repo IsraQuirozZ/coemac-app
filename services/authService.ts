@@ -64,7 +64,7 @@ export const registerRequest = async (data: RegisterData) => {
 };
 
 export const verifyEmailRequest = async (token: string) => {
-  const response = await fetch(`${API_URL}/auth/verify-email?token=${token}`, {
+  const response = await fetch(`${API_URL}/auth/verify-email`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ token }),
@@ -72,9 +72,7 @@ export const verifyEmailRequest = async (token: string) => {
 
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(
-      errorData.message || errorData.errors?.[0] || "Error verifying email",
-    );
+    throw new Error(errorData.message || "Error verifying email");
   }
 
   return response.json();
