@@ -3,6 +3,7 @@ import FormField from "@/components/ui/FormField";
 import { resetPasswordRequest } from "@/services/authService";
 import { globalStyles } from "@/styles/globals.styles";
 import { colors } from "@/theme/colors";
+import * as Linking from "expo-linking";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Text, TextInput, View } from "react-native";
@@ -11,22 +12,38 @@ import { styles } from "../styles/forgotPassword.styles";
 
 export default function ResetPasswordScreen() {
   const router = useRouter();
-  const { token } = useLocalSearchParams<{ token: string }>();
+  const { token: paramToken } = useLocalSearchParams<{ token: string }>();
 
+  // El token se guarda en estado para poder actualizarlo si llega un nuevo deep link
+  const [token, setToken] = useState<string | undefined>(paramToken);
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  // Si el token cambia (nuevo deep link mientras estás en esta pantalla),
-  // reinicia el form para que el usuario empiece de cero
+  // Si paramToken cambia (entrada inicial) lo sincroniza
   useEffect(() => {
-    setPassword("");
-    setConfirmPassword("");
-    setError(null);
-    setSuccess(false);
-  }, [token]);
+    if (paramToken) setToken(paramToken);
+  }, [paramToken]);
+
+  // Cuando la app YA estaba abierta y llega un nuevo deep link
+  useEffect(() => {
+    const sub = Linking.addEventListener("url", ({ url }) => {
+      const { queryParams } = Linking.parse(url);
+      const tokenFromUrl = queryParams?.token as string | undefined;
+      if (tokenFromUrl) {
+        setToken(tokenFromUrl);
+        // Reinicia el form por si el usuario tenía algo escrito
+        setPassword("");
+        setConfirmPassword("");
+        setError(null);
+        setSuccess(false);
+      }
+    });
+
+    return () => sub.remove();
+  }, []);
 
   const handleReset = async () => {
     if (!token) {
@@ -91,7 +108,7 @@ export default function ResetPasswordScreen() {
         <View style={globalStyles.formFields}>
           <FormField label="Nueva Contraseña" icon="lock-closed" error={error || ""} type="password">
             <TextInput
-              style={styles.inputPassword}
+              style={ styles.inputPassword }
               placeholder="********"
               placeholderTextColor={colors.secondaryText}
               value={password}
@@ -105,7 +122,7 @@ export default function ResetPasswordScreen() {
 
           <FormField label="Confirmar Contraseña" icon="lock-closed" error={error || ""} type="password">
             <TextInput
-              style={styles.inputPassword}
+              style={ styles.inputPassword }
               placeholder="********"
               placeholderTextColor={colors.secondaryText}
               value={confirmPassword}

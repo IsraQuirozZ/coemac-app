@@ -1,21 +1,21 @@
 import { ToastProvider } from "@/hooks/useToast";
-import * as Linking from "expo-linking";
 import { Stack, useRouter, useSegments } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AuthProvider, useAuth } from "../context/AuthContext";
 import { colors } from "../theme/colors";
 
-function AuthGate({ blocked }: { blocked: boolean }) {
+function AuthGate() {
   const { token, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
 
   useEffect(() => {
     if (loading) return;
+
+    //EVITA PANTALLA EN BLANCO
     if (!segments.length) return;
-    if (blocked) return; // ← si hay deep link activo, no redirige
 
     const inAuthScreen =
       segments[0] === "login" ||
@@ -32,59 +32,19 @@ function AuthGate({ blocked }: { blocked: boolean }) {
     if (token && inAuthScreen) {
       router.replace("/(tabs)/dashboard");
     }
-  }, [token, loading, segments, blocked]);
+  }, [token, loading, segments]);
 
   return <></>;
 }
 
-function DeepLinkHandler({ onDeepLink }: { onDeepLink: (active: boolean) => void }) {
-  const router = useRouter();
-
-  const handleUrl = (url: string) => {
-    const parsed = Linking.parse(url);
-    const path = parsed.hostname || parsed.path || "";
-    const token = parsed.queryParams?.token as string | undefined;
-
-    if (!path || !token) return;
-
-    if (path.includes("verifyEmail")) {
-      onDeepLink(true); // bloquea AuthGate
-      setTimeout(() => {
-        router.replace({ pathname: "/verifyEmail", params: { token } });
-        onDeepLink(false); // desbloquea tras navegar
-      }, 300);
-    } else if (path.includes("resetPassword")) {
-      onDeepLink(true);
-      setTimeout(() => {
-        router.replace({ pathname: "/resetPassword", params: { token } });
-        onDeepLink(false);
-      }, 300);
-    }
-  };
-
-  useEffect(() => {
-    // App cerrada → abierta por deep link
-    Linking.getInitialURL().then((url) => {
-      if (url) setTimeout(() => handleUrl(url), 500);
-    });
-
-    // App ya abierta → llega nuevo deep link
-    const sub = Linking.addEventListener("url", ({ url }) => handleUrl(url));
-    return () => sub.remove();
-  }, []);
-
-  return null;
-}
-
 export default function RootLayout() {
-  const [deepLinkActive, setDeepLinkActive] = useState(false);
-
   return (
-    <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.background }}>
+    <GestureHandlerRootView
+      style={{ flex: 1, backgroundColor: colors.background }}
+    >
       <AuthProvider>
         <ToastProvider>
-          <DeepLinkHandler onDeepLink={setDeepLinkActive} />
-          <AuthGate blocked={deepLinkActive} />
+          <AuthGate />
 
           <Stack
             screenOptions={{
@@ -101,31 +61,31 @@ export default function RootLayout() {
 
             <Stack.Screen
               name="(modals)/crearReferencia"
-              options={{
+              options={{ 
                 presentation: Platform.OS === "ios" ? "modal" : undefined,
                 animation: Platform.OS === "android" ? "slide_from_bottom" : undefined,
                 gestureEnabled: true,
-              }}
+               }}
             />
             <Stack.Screen
               name="(modals)/crearAgradecimiento"
-              options={{
+              options={{ 
                 presentation: Platform.OS === "ios" ? "modal" : undefined,
                 animation: Platform.OS === "android" ? "slide_from_bottom" : undefined,
                 gestureEnabled: true,
-              }}
+               }}
             />
             <Stack.Screen
               name="(modals)/envioAgradecimiento"
-              options={{
+              options={{ 
                 presentation: Platform.OS === "ios" ? "modal" : undefined,
                 animation: Platform.OS === "android" ? "slide_from_bottom" : undefined,
                 gestureEnabled: true,
-              }}
+               }}
             />
             <Stack.Screen
               name="(modals)/crearReunion"
-              options={{
+              options={{ 
                 presentation: Platform.OS === "ios" ? "modal" : undefined,
                 animation: Platform.OS === "android" ? "slide_from_bottom" : undefined,
                 gestureEnabled: true,
@@ -133,7 +93,7 @@ export default function RootLayout() {
             />
             <Stack.Screen
               name="(modals)/informe"
-              options={{
+              options={{ 
                 presentation: Platform.OS === "ios" ? "modal" : undefined,
                 animation: Platform.OS === "android" ? "slide_from_bottom" : undefined,
                 gestureEnabled: true,
@@ -141,23 +101,24 @@ export default function RootLayout() {
             />
             <Stack.Screen
               name="(modals)/informeEntity"
-              options={{
+              options={{ 
                 presentation: Platform.OS === "ios" ? "modal" : undefined,
                 animation: Platform.OS === "android" ? "slide_from_bottom" : undefined,
                 gestureEnabled: true,
-              }}
+               }}
             />
+
             <Stack.Screen
               name="(modals)/referencias/[id]"
-              options={{
+              options={{ 
                 presentation: Platform.OS === "ios" ? "modal" : undefined,
                 animation: Platform.OS === "android" ? "slide_from_bottom" : undefined,
                 gestureEnabled: true,
-              }}
+               }}
             />
             <Stack.Screen
               name="(modals)/reuniones/[id]"
-              options={{
+              options={{ 
                 presentation: Platform.OS === "ios" ? "modal" : undefined,
                 animation: Platform.OS === "android" ? "slide_from_bottom" : undefined,
                 gestureEnabled: true,
@@ -165,15 +126,15 @@ export default function RootLayout() {
             />
             <Stack.Screen
               name="(modals)/agradecimientos/[id]"
-              options={{
+              options={{ 
                 presentation: Platform.OS === "ios" ? "modal" : undefined,
                 animation: Platform.OS === "android" ? "slide_from_bottom" : undefined,
                 gestureEnabled: true,
-              }}
+               }}
             />
             <Stack.Screen
               name="(modals)/change-password"
-              options={{
+              options={{ 
                 presentation: Platform.OS === "ios" ? "modal" : undefined,
                 animation: Platform.OS === "android" ? "slide_from_bottom" : undefined,
                 gestureEnabled: true,
@@ -181,12 +142,12 @@ export default function RootLayout() {
             />
             <Stack.Screen
               name="(modals)/manage-users"
-              options={{
+              options={{ 
                 presentation: Platform.OS === "ios" ? "modal" : undefined,
                 animation: Platform.OS === "android" ? "slide_from_bottom" : undefined,
                 gestureEnabled: true,
-              }}
-            />
+               }}
+             />
           </Stack>
         </ToastProvider>
       </AuthProvider>
