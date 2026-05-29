@@ -1,13 +1,13 @@
 import { ToastProvider } from "@/hooks/useToast";
 import * as Linking from "expo-linking";
 import { Stack, useRouter, useSegments } from "expo-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Platform } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { AuthProvider, useAuth } from "../context/AuthContext";
 import { colors } from "../theme/colors";
 
-function AuthGate() {
+function AuthGate({ blocked }: { blocked: boolean }) {
   const { token, loading } = useAuth();
   const segments = useSegments();
   const router = useRouter();
@@ -15,6 +15,7 @@ function AuthGate() {
   useEffect(() => {
     if (loading) return;
     if (!segments.length) return;
+    if (blocked) return; // ← si hay deep link activo, no redirige
 
     const inAuthScreen =
       segments[0] === "login" ||
@@ -31,13 +32,12 @@ function AuthGate() {
     if (token && inAuthScreen) {
       router.replace("/(tabs)/dashboard");
     }
-  }, [token, loading, segments]);
+  }, [token, loading, segments, blocked]);
 
   return <></>;
 }
 
-
-function DeepLinkHandler() {
+function DeepLinkHandler({ onDeepLink }: { onDeepLink: (active: boolean) => void }) {
   const router = useRouter();
 
   const handleUrl = (url: string) => {
@@ -48,12 +48,16 @@ function DeepLinkHandler() {
     if (!path || !token) return;
 
     if (path.includes("verifyEmail")) {
+      onDeepLink(true); // bloquea AuthGate
       setTimeout(() => {
         router.replace({ pathname: "/verifyEmail", params: { token } });
+        onDeepLink(false); // desbloquea tras navegar
       }, 300);
     } else if (path.includes("resetPassword")) {
+      onDeepLink(true);
       setTimeout(() => {
         router.replace({ pathname: "/resetPassword", params: { token } });
+        onDeepLink(false);
       }, 300);
     }
   };
@@ -61,9 +65,7 @@ function DeepLinkHandler() {
   useEffect(() => {
     // App cerrada → abierta por deep link
     Linking.getInitialURL().then((url) => {
-      if (url) {
-        setTimeout(() => handleUrl(url), 500);
-      }
+      if (url) setTimeout(() => handleUrl(url), 500);
     });
 
     // App ya abierta → llega nuevo deep link
@@ -75,12 +77,14 @@ function DeepLinkHandler() {
 }
 
 export default function RootLayout() {
+  const [deepLinkActive, setDeepLinkActive] = useState(false);
+
   return (
     <GestureHandlerRootView style={{ flex: 1, backgroundColor: colors.background }}>
       <AuthProvider>
         <ToastProvider>
-          <AuthGate />
-          <DeepLinkHandler />
+          <DeepLinkHandler onDeepLink={setDeepLinkActive} />
+          <AuthGate blocked={deepLinkActive} />
 
           <Stack
             screenOptions={{
@@ -143,7 +147,6 @@ export default function RootLayout() {
                 gestureEnabled: true,
               }}
             />
-
             <Stack.Screen
               name="(modals)/referencias/[id]"
               options={{
