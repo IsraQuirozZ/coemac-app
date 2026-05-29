@@ -36,33 +36,37 @@ function AuthGate() {
   return <></>;
 }
 
-// Escuchador global de deep links
-// Captura los enlaces tipo coemac-app://verifyEmail?token=xxx aunque la app
-// ya esté abierta y el usuario esté en otra pantalla.
+
 function DeepLinkHandler() {
   const router = useRouter();
 
-  useEffect(() => {
-    const handleUrl = (url: string) => {
-      const parsed = Linking.parse(url);
-      const path = parsed.hostname || parsed.path || "";
-      const token = parsed.queryParams?.token as string | undefined;
+  const handleUrl = (url: string) => {
+    const parsed = Linking.parse(url);
+    const path = parsed.hostname || parsed.path || "";
+    const token = parsed.queryParams?.token as string | undefined;
 
-      if (!path || !token) return;
+    if (!path || !token) return;
 
-      if (path.includes("verifyEmail")) {
+    if (path.includes("verifyEmail")) {
+      setTimeout(() => {
         router.replace({ pathname: "/verifyEmail", params: { token } });
-      } else if (path.includes("resetPassword")) {
+      }, 300);
+    } else if (path.includes("resetPassword")) {
+      setTimeout(() => {
         router.replace({ pathname: "/resetPassword", params: { token } });
-      }
-    };
+      }, 300);
+    }
+  };
 
-    // Caso 1: App cerrada y se abre por deep link
+  useEffect(() => {
+    // App cerrada → abierta por deep link
     Linking.getInitialURL().then((url) => {
-      if (url) handleUrl(url);
+      if (url) {
+        setTimeout(() => handleUrl(url), 500);
+      }
     });
 
-    // Caso 2: App ya abierta y llega un nuevo deep link
+    // App ya abierta → llega nuevo deep link
     const sub = Linking.addEventListener("url", ({ url }) => handleUrl(url));
     return () => sub.remove();
   }, []);
